@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Compass, PlusCircle, MessageSquare, User, RotateCcw, CheckCircle2, Share2, Globe, MapPin, Check, ChevronRight, Zap, Trash2, Heart, Settings } from 'lucide-react';
+import { Compass, PlusCircle, MessageSquare, User, RotateCcw, CheckCircle2, Share2, Globe, MapPin, Check, ChevronRight, Zap, Trash2, Heart, Settings, Sparkles } from 'lucide-react';
 import { Product } from './types';
 import { PRODUCTS, CATEGORIES_DATA, NIGERIA_CITIES } from './data';
 import { DiscoverHeader } from './components/DiscoverHeader';
@@ -100,7 +100,14 @@ export const App = () => {
           setActiveTab={setActiveTab} activeTab={activeTab} wishlistCount={likedItems.length}
         />
       )}
-      {activePage === 'upload' && <UploadHeader />}
+      {activePage === 'upload' && (
+        <header className="shrink-0 bg-white py-6 px-6 flex items-center justify-between">
+          <h2 className="text-3xl font-black text-neutral-900 tracking-tighter uppercase italic">Studio</h2>
+          <button className="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl active:scale-90 transition-all">
+            <Sparkles size={22} strokeWidth={2.5} />
+          </button>
+        </header>
+      )}
       {activePage === 'matches' && !isChatOpen && (
         <header className="shrink-0 bg-white py-6 px-6 flex items-center justify-between">
           <h2 className="text-3xl font-black text-neutral-900 tracking-tighter uppercase italic">Inbox</h2>
