@@ -93,12 +93,12 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           ))}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
         
-        {/* Info Overlay - Reduced bottom padding to push content lower */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 pb-8 text-white pointer-events-none">
+        {/* Info Overlay - Increased bottom padding significantly to push content down */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 pb-12 text-white pointer-events-none">
           {/* Vendor Info (Top) */}
-          <div className="flex items-center gap-2.5 mb-3 drop-shadow-lg">
+          <div className="flex items-center gap-2.5 mb-4 drop-shadow-lg">
             <img src={product.vendor.avatar} className="w-10 h-10 rounded-full border-2 border-white/20 object-cover shadow-lg" />
             <div className="flex flex-col">
               <span className="text-base font-black text-white leading-tight tracking-tight">{product.vendor.name}</span>
@@ -142,3 +142,4 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
     </motion.div>
   );
 };
+

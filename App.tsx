@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Compass, PlusCircle, MessageSquare, User, RotateCcw, CheckCircle2, Share2, Globe, MapPin, Check, ChevronRight } from 'lucide-react';
+import { Compass, PlusCircle, MessageSquare, User, RotateCcw, CheckCircle2, Share2, Globe, MapPin, Check, ChevronRight, Zap, Trash2, Heart, Settings } from 'lucide-react';
 import { Product } from './types';
 import { PRODUCTS, CATEGORIES_DATA, NIGERIA_CITIES } from './data';
 import { DiscoverHeader } from './components/DiscoverHeader';
@@ -10,6 +10,8 @@ import { SwipeCard } from './components/SwipeCard';
 import { SwipeControls } from './components/SwipeControls';
 import { Modal } from './components/Modal';
 import { UploadPage } from './pages/UploadPage';
+import { MatchesPage } from './pages/MatchesPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { ComingSoonState } from './components/ComingSoonState';
 
 export const App = () => {
@@ -20,6 +22,7 @@ export const App = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [triggerDir, setTriggerDir] = useState<'left' | 'right' | 'up' | null>(null);
   const [showSellerToast, setShowSellerToast] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
@@ -75,15 +78,17 @@ export const App = () => {
   };
 
   const refreshDrops = () => {
-    // If filters are already at default, we manually trigger the reload
     if (activeCategory === "All" && currentCity === "All Locations") {
       setItems([...PRODUCTS]);
       setHistory([]);
     } else {
-      // Changing these will trigger the useEffect
       setActiveCategory("All");
       setCurrentCity("All Locations");
     }
+  };
+
+  const removeFromWishlist = (id: number) => {
+    setLikedItems(prev => prev.filter(item => item.id !== id));
   };
 
   return (
@@ -96,16 +101,30 @@ export const App = () => {
         />
       )}
       {activePage === 'upload' && <UploadHeader />}
-      {(activePage === 'matches' || activePage === 'profile') && (
-        <header className="shrink-0 bg-white py-5 px-6 border-b border-neutral-50">
-          <h2 className="text-xl font-black text-neutral-900 tracking-tighter uppercase italic">{activePage}</h2>
+      {activePage === 'matches' && !isChatOpen && (
+        <header className="shrink-0 bg-white py-6 px-6 flex items-center justify-between">
+          <h2 className="text-3xl font-black text-neutral-900 tracking-tighter uppercase italic">Inbox</h2>
+          <button 
+            onClick={() => setShowWishlist(true)}
+            className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center active:scale-90 transition-all"
+          >
+            <Zap size={20} fill="currentColor" />
+          </button>
+        </header>
+      )}
+      {activePage === 'profile' && (
+        <header className="shrink-0 bg-white py-6 px-6 flex items-center justify-between">
+          <h2 className="text-3xl font-black text-neutral-900 tracking-tighter uppercase italic">Profile</h2>
+          <button className="p-2.5 bg-neutral-100 rounded-2xl text-neutral-400 active:scale-90 transition-all">
+            <Settings size={22} strokeWidth={2.5} />
+          </button>
         </header>
       )}
 
       <div className="flex-1 relative z-10 flex flex-col items-center overflow-y-auto no-scrollbar">
         <main className="w-full max-w-[420px] flex flex-col items-center pt-2 pb-40 px-4 h-full">
           {activePage === 'discover' ? (
-            <div className="relative w-full h-[74vh] mb-4">
+            <div className="relative w-full h-[76vh] mb-4">
               <AnimatePresence mode="popLayout">
                 {activeTab === 'marketplace' ? (
                   items.length > 0 ? (
@@ -137,7 +156,7 @@ export const App = () => {
               </AnimatePresence>
               
               {activePage === 'discover' && activeTab === 'marketplace' && items.length > 0 && (
-                <div className="absolute -bottom-24 left-0 right-0 z-[110]">
+                <div className="absolute -bottom-28 left-0 right-0 z-[110]">
                   <SwipeControls 
                     onUndo={undoLast} onNope={() => setTriggerDir('left')}
                     onStar={() => setTriggerDir('up')} onLike={() => setTriggerDir('right')}
@@ -148,11 +167,10 @@ export const App = () => {
             </div>
           ) : activePage === 'upload' ? (
             <UploadPage />
+          ) : activePage === 'matches' ? (
+            <MatchesPage onChatToggle={setIsChatOpen} />
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-neutral-300">
-               <PlusCircle size={40} className="mb-4 opacity-50" />
-               <p className="text-[10px] font-black uppercase">{activePage} coming soon</p>
-            </div>
+            <ProfilePage />
           )}
         </main>
       </div>
@@ -170,6 +188,55 @@ export const App = () => {
             <button className="w-full bg-neutral-900 text-white py-5 rounded-2xl font-black uppercase text-[10px] mt-4 shadow-xl">Start Chat</button>
           </div>
         )}
+      </Modal>
+
+      <Modal isOpen={showWishlist} onClose={() => setShowWishlist(false)} title="Your Wishlist" fullHeight>
+        <div className="space-y-4">
+          {likedItems.length > 0 ? (
+            likedItems.map((item) => (
+              <div key={item.id} className="flex items-center gap-4 p-3 bg-neutral-50 rounded-2xl border border-neutral-100 group">
+                <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-neutral-200">
+                  <img src={item.images[0]} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    {item.isSuper && <Zap size={10} className="text-[#29B3F0]" fill="currentColor" />}
+                    <span className="text-[8px] font-black text-indigo-600 uppercase tracking-widest">{item.category}</span>
+                  </div>
+                  <h4 className="text-sm font-black text-neutral-900 truncate tracking-tight">{item.name}</h4>
+                  <p className="text-xs font-black text-[#15D491] mt-0.5">{item.price}</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <button 
+                      onClick={() => { setSelectedProduct(item); setShowWishlist(false); }}
+                      className="text-[9px] font-black uppercase tracking-widest text-neutral-400 hover:text-neutral-900 transition-colors"
+                    >
+                      Details
+                    </button>
+                    <button 
+                      onClick={() => removeFromWishlist(item.id)}
+                      className="text-[9px] font-black uppercase tracking-widest text-rose-500 flex items-center gap-1"
+                    >
+                      <Trash2 size={10} /> Remove
+                    </button>
+                  </div>
+                </div>
+                <button className="p-3 bg-white rounded-xl shadow-sm border border-neutral-100 text-neutral-900 active:scale-90 transition-all">
+                  <MessageSquare size={18} strokeWidth={2.5} />
+                </button>
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+              <div className="w-20 h-20 bg-neutral-50 rounded-full flex items-center justify-center border border-neutral-100">
+                <Heart size={32} className="text-neutral-200" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-base font-black text-neutral-900 uppercase tracking-tighter">No items yet</h4>
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Swipe right on items you want to buy!</p>
+              </div>
+            </div>
+          )}
+        </div>
       </Modal>
 
       <Modal isOpen={showFilterDialog} onClose={() => setShowFilterDialog(false)} title="DISCOVERY FILTER">
@@ -214,20 +281,22 @@ export const App = () => {
         </div>
       </Modal>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-[120] bg-white border-t border-neutral-100 px-4 py-3 pb-safe flex items-center justify-around shadow-[0_-8px_30px_rgba(0,0,0,0.03)]">
-        {(['discover', 'upload', 'matches', 'profile'] as const).map((page) => {
-          const isActive = activePage === page;
-          const icons = { discover: Compass, upload: PlusCircle, matches: MessageSquare, profile: User };
-          const Icon = icons[page];
-          return (
-            <button key={page} onClick={() => setActivePage(page)} className={`flex flex-col items-center gap-1.5 transition-all duration-300 relative min-w-[70px] ${isActive ? 'text-indigo-600' : 'text-neutral-400'}`}>
-              <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[9px] font-black uppercase tracking-widest leading-none">{page}</span>
-              {isActive && <motion.div layoutId="navIndicator" className="absolute -bottom-1 w-1 h-1 rounded-full bg-indigo-600" />}
-            </button>
-          );
-        })}
-      </nav>
+      {!isChatOpen && (
+        <nav className="fixed bottom-0 left-0 right-0 z-[120] bg-white border-t border-neutral-100 px-4 py-3 pb-safe flex items-center justify-around shadow-[0_-8px_30px_rgba(0,0,0,0.03)]">
+          {(['discover', 'upload', 'matches', 'profile'] as const).map((page) => {
+            const isActive = activePage === page;
+            const icons = { discover: Compass, upload: PlusCircle, matches: MessageSquare, profile: User };
+            const Icon = icons[page];
+            return (
+              <button key={page} onClick={() => setActivePage(page)} className={`flex flex-col items-center gap-1.5 transition-all duration-300 relative min-w-[70px] ${isActive ? 'text-indigo-600' : 'text-neutral-400'}`}>
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-[9px] font-black uppercase tracking-widest leading-none">{page}</span>
+                {isActive && <motion.div layoutId="navIndicator" className="absolute -bottom-1 w-1 h-1 rounded-full bg-indigo-600" />}
+              </button>
+            );
+          })}
+        </nav>
+      )}
 
       <AnimatePresence>
         {showSellerToast && (
