@@ -17,7 +17,8 @@ import {
   LayoutGrid, 
   PlusSquare,
   Sparkles,
-  Zap
+  Zap,
+  Banknote
 } from 'lucide-react';
 import { CATEGORIES_DATA } from '../data';
 
@@ -211,7 +212,7 @@ export const UploadPage: React.FC = () => {
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px] flex flex-col items-center justify-center gap-3 p-4">
                   <div className="text-center mb-2">
                     <h4 className="text-white text-xs font-black uppercase tracking-widest truncate max-w-[120px]">{item.name}</h4>
-                    <p className="text-emerald-400 text-[10px] font-black mt-1 tracking-tighter">{item.price}</p>
+                    <p className="text-indigo-400 text-[10px] font-black mt-1 tracking-tighter">{item.price}</p>
                   </div>
                   
                   <div className="flex gap-2">
@@ -395,45 +396,69 @@ export const UploadPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Price Field */}
+              {/* Redesigned Price Field with Integrated Select */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest px-1">Asking Price</label>
-                <div className="flex gap-3">
-                  <div className="relative flex-1">
-                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-neutral-900 font-black text-xl">₦</span>
+                <div className="relative group">
+                  <div className="flex bg-white border border-neutral-300 rounded-[1.5rem] focus-within:border-neutral-900 focus-within:ring-4 focus-within:ring-neutral-900/5 transition-all overflow-hidden shadow-sm items-stretch h-20">
+                    {/* Currency Symbol Section */}
+                    <div className="flex items-center justify-center pl-6 pr-4 bg-neutral-50/50 border-r border-neutral-100">
+                      <span className="text-neutral-900 font-black text-2xl">₦</span>
+                    </div>
+
+                    {/* Numeric Input Area */}
                     <input 
-                      type="text" value={price} onChange={(e) => setPrice(e.target.value)}
+                      type="text" 
+                      value={price} 
+                      onChange={(e) => setPrice(e.target.value)}
                       placeholder="0.00" 
-                      className="w-full bg-white border border-neutral-300 rounded-[1.5rem] pl-12 pr-6 py-5 text-xl font-black text-neutral-900 focus:outline-none focus:border-neutral-900 transition-all shadow-sm placeholder:text-neutral-200" 
+                      className="flex-1 bg-transparent border-none px-4 py-0 text-2xl font-black text-neutral-900 focus:ring-0 focus:outline-none placeholder:text-neutral-200" 
                     />
-                  </div>
-                  <div className="relative">
-                    <button 
-                      onClick={() => setShowPriceTypeDropdown(!showPriceTypeDropdown)}
-                      className="h-full bg-neutral-900 rounded-[1.5rem] px-6 flex items-center justify-between text-white min-w-[140px] shadow-lg active:scale-95 transition-all"
-                    >
-                      <span className="text-[10px] font-black uppercase tracking-[0.15em]">{priceType}</span>
-                      <ChevronDown size={14} className={`ml-2 transition-transform ${showPriceTypeDropdown ? 'rotate-180' : ''}`} />
-                    </button>
-                    <AnimatePresence>
-                      {showPriceTypeDropdown && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                          className="absolute z-50 bottom-full right-0 mb-2 bg-white border border-neutral-200 rounded-[1.5rem] shadow-2xl p-2 min-w-[140px]"
-                        >
-                          {priceTypes.map((type) => (
-                            <button
-                              key={type}
-                              onClick={() => { setPriceType(type); setShowPriceTypeDropdown(false); }}
-                              className={`w-full text-left px-4 py-3.5 rounded-xl flex items-center justify-between transition-colors ${priceType === type ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-neutral-50 text-neutral-700'}`}
-                            >
-                              <span className="text-[10px] font-black uppercase tracking-widest">{type}</span>
-                              {priceType === type && <Check size={14} strokeWidth={4} />}
-                            </button>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+
+                    {/* Integrated Type Selector */}
+                    <div className="relative flex items-center pr-3">
+                      <button 
+                        onClick={() => setShowPriceTypeDropdown(!showPriceTypeDropdown)}
+                        className="flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-xl shadow-md active:scale-95 transition-all"
+                      >
+                        <div className="flex flex-col items-start pr-1">
+                          <span className="text-[7px] font-black uppercase tracking-[0.2em] opacity-40 leading-none mb-0.5">TYPE</span>
+                          <span className="text-[9px] font-black uppercase tracking-[0.15em] leading-none">{priceType}</span>
+                        </div>
+                        <ChevronDown size={14} className={`text-white transition-transform duration-300 ${showPriceTypeDropdown ? 'rotate-180' : ''}`} strokeWidth={3} />
+                      </button>
+
+                      {/* Perfect Select Dropdown */}
+                      <AnimatePresence>
+                        {showPriceTypeDropdown && (
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="absolute z-50 bottom-full right-0 mb-3 w-44 bg-neutral-900 text-white border border-white/10 rounded-2xl shadow-2xl p-2.5 overflow-hidden"
+                          >
+                            <div className="px-2 pt-1 pb-2">
+                              <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">Select Pricing Model</span>
+                            </div>
+                            {priceTypes.map((type) => (
+                              <button
+                                key={type}
+                                onClick={() => { setPriceType(type); setShowPriceTypeDropdown(false); }}
+                                className={`w-full text-left px-4 py-3.5 rounded-xl flex items-center justify-between transition-all group ${priceType === type ? 'bg-indigo-600 text-white' : 'hover:bg-white/5 text-white/70'}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={`p-1.5 rounded-lg ${priceType === type ? 'bg-white/20' : 'bg-white/5'}`}>
+                                    <Banknote size={14} />
+                                  </div>
+                                  <span className="text-[10px] font-black uppercase tracking-widest">{type}</span>
+                                </div>
+                                {priceType === type && <Check size={14} strokeWidth={4} className="text-white" />}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
                 </div>
               </div>

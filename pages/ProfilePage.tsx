@@ -169,7 +169,7 @@ export const ProfilePage: React.FC = () => {
                     <span className="text-[8px] font-black text-neutral-300 uppercase tracking-widest">{drop.views} Views</span>
                   </div>
                   <h4 className="text-sm font-black text-neutral-900 truncate tracking-tight">{drop.name}</h4>
-                  <p className="text-xs font-black text-[#15D491] mt-0.5">{drop.price}</p>
+                  <p className="text-xs font-black text-indigo-600 mt-0.5">{drop.price}</p>
                 </div>
                 <button className="p-3 text-neutral-300 hover:text-neutral-900 transition-colors">
                   <ChevronRight size={20} strokeWidth={3} />

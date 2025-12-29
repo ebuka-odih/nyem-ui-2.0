@@ -1,6 +1,15 @@
 
 import React from 'react';
 
+export interface Review {
+  id: string;
+  userName: string;
+  userAvatar: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
 export interface Vendor {
   name: string;
   avatar: string;
@@ -10,6 +19,8 @@ export interface Vendor {
   joinedDate: string;
   bio: string;
   verified: boolean;
+  followers: number;
+  reviews?: Review[];
 }
 
 export interface Product {

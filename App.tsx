@@ -1,8 +1,28 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Compass, PlusCircle, MessageSquare, User, RotateCcw, CheckCircle2, Share2, Globe, MapPin, Check, ChevronRight, Zap, Trash2, Heart, Settings, Sparkles } from 'lucide-react';
-import { Product } from './types';
+import { 
+  Compass, 
+  PlusCircle, 
+  MessageSquare, 
+  User, 
+  RotateCcw, 
+  CheckCircle2, 
+  Share2, 
+  Globe, 
+  MapPin, 
+  Check, 
+  ChevronRight, 
+  Zap, 
+  Trash2, 
+  Heart, 
+  Settings, 
+  Sparkles,
+  BadgeCheck,
+  Star,
+  Info
+} from 'lucide-react';
+import { Product, Vendor } from './types';
 import { PRODUCTS, CATEGORIES_DATA, NIGERIA_CITIES } from './data';
 import { DiscoverHeader } from './components/DiscoverHeader';
 import { UploadHeader } from './components/UploadHeader';
@@ -13,6 +33,8 @@ import { UploadPage } from './pages/UploadPage';
 import { MatchesPage } from './pages/MatchesPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ComingSoonState } from './components/ComingSoonState';
+import { RatingStars } from './components/RatingStars';
+import { SellerProfileView } from './components/SellerProfileView';
 
 export const App = () => {
   const [items, setItems] = useState<Product[]>(PRODUCTS);
@@ -20,8 +42,10 @@ export const App = () => {
   const [likedItems, setLikedItems] = useState<Product[]>([]);
   const [showWishlist, setShowWishlist] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [viewingSeller, setViewingSeller] = useState<Vendor | null>(null);
   const [triggerDir, setTriggerDir] = useState<'left' | 'right' | 'up' | null>(null);
   const [showSellerToast, setShowSellerToast] = useState(false);
+  const [lastSparkedItem, setLastSparkedItem] = useState<Product | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   const [showFilterDialog, setShowFilterDialog] = useState(false);
@@ -32,6 +56,22 @@ export const App = () => {
   const [activeTab, setActiveTab] = useState<'marketplace' | 'services' | 'barter'>('marketplace');
   const [activePage, setActivePage] = useState<'discover' | 'upload' | 'matches' | 'profile'>('discover');
 
+  // Notification setup
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  const sendNativeNotification = (title: string, body: string, icon?: string) => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(title, { 
+        body, 
+        icon: icon || 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=100'
+      });
+    }
+  };
+
   const filteredProducts = useMemo(() => {
     let result = PRODUCTS;
     if (activeCategory !== "All") result = result.filter(p => p.category.toUpperCase() === activeCategory.toUpperCase());
@@ -39,7 +79,6 @@ export const App = () => {
     return result;
   }, [activeCategory, currentCity]);
 
-  // Sync items when filters change
   useEffect(() => {
     setItems([...filteredProducts]);
     setHistory([]);
@@ -50,10 +89,21 @@ export const App = () => {
   const handleSwipe = useCallback((direction: 'left' | 'right' | 'up') => {
     const swipedItem = items[activeIndex];
     if (!swipedItem) return;
+    
     if (direction === 'up') {
+      setLastSparkedItem(swipedItem);
       setShowSellerToast(true);
-      setTimeout(() => setShowSellerToast(false), 3000);
+      
+      // Trigger Native Notification simulating the Seller's view
+      sendNativeNotification(
+        "New Super Interest! ⚡️",
+        `A buyer is highly interested in your "${swipedItem.name}". Open Nyem to chat!`,
+        swipedItem.images[0]
+      );
+
+      setTimeout(() => setShowSellerToast(false), 3500);
     }
+    
     if (direction === 'right' || direction === 'up') {
       const enhancedItem = direction === 'up' ? { ...swipedItem, isSuper: true } : swipedItem;
       setLikedItems(prev => prev.find(i => i.id === enhancedItem.id) ? prev : [...prev, enhancedItem]);
@@ -64,7 +114,7 @@ export const App = () => {
   }, [items, activeIndex]);
 
   const handleShare = async (product: Product | null = null) => {
-    const itemToShare = product || items[activeIndex];
+    const itemToShare = product || items[activeIndex] || selectedProduct;
     if (!itemToShare) return;
     try { await navigator.share({ title: itemToShare.name, text: 'Check this on Nyem!', url: 'https://nyem.app' }); } catch (err) { alert('Link copied!'); }
   };
@@ -91,6 +141,10 @@ export const App = () => {
     setLikedItems(prev => prev.filter(item => item.id !== id));
   };
 
+  const openSellerProfile = (vendor: Vendor) => {
+    setViewingSeller(vendor);
+  };
+
   return (
     <div className="h-screen bg-white flex flex-col font-sans select-none relative overflow-hidden">
       {activePage === 'discover' && (
@@ -101,37 +155,61 @@ export const App = () => {
         />
       )}
       {activePage === 'upload' && (
-        <header className="shrink-0 bg-white py-6 px-6 flex items-center justify-between">
-          <h2 className="text-3xl font-black text-neutral-900 tracking-tighter uppercase italic">Studio</h2>
-          <button className="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl active:scale-90 transition-all">
-            <Sparkles size={22} strokeWidth={2.5} />
-          </button>
+        <header className="shrink-0 bg-white pt-4 pb-3 px-6 flex flex-col gap-2 border-b border-neutral-50">
+          <div className="flex items-center gap-1.5 opacity-60">
+            <div className="w-5 h-5 bg-neutral-900 rounded flex items-center justify-center text-white">
+              <Zap size={10} fill="currentColor" />
+            </div>
+            <span className="text-[10px] font-black tracking-tighter uppercase italic text-neutral-900">Nyem</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black text-neutral-900 tracking-tighter uppercase italic">Studio</h2>
+            <button className="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl active:scale-90 transition-all">
+              <Sparkles size={20} strokeWidth={2.5} />
+            </button>
+          </div>
         </header>
       )}
       {activePage === 'matches' && !isChatOpen && (
-        <header className="shrink-0 bg-white py-6 px-6 flex items-center justify-between">
-          <h2 className="text-3xl font-black text-neutral-900 tracking-tighter uppercase italic">Inbox</h2>
-          <button 
-            onClick={() => setShowWishlist(true)}
-            className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center active:scale-90 transition-all"
-          >
-            <Zap size={20} fill="currentColor" />
-          </button>
+        <header className="shrink-0 bg-white pt-4 pb-3 px-6 flex flex-col gap-2 border-b border-neutral-50">
+          <div className="flex items-center gap-1.5 opacity-60">
+            <div className="w-5 h-5 bg-neutral-900 rounded flex items-center justify-center text-white">
+              <Zap size={10} fill="currentColor" />
+            </div>
+            <span className="text-[10px] font-black tracking-tighter uppercase italic text-neutral-900">Nyem</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black text-neutral-900 tracking-tighter uppercase italic">Inbox</h2>
+            <button 
+              onClick={() => setShowWishlist(true)}
+              className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center active:scale-90 transition-all"
+            >
+              <Zap size={20} fill="currentColor" />
+            </button>
+          </div>
         </header>
       )}
       {activePage === 'profile' && (
-        <header className="shrink-0 bg-white py-6 px-6 flex items-center justify-between">
-          <h2 className="text-3xl font-black text-neutral-900 tracking-tighter uppercase italic">Profile</h2>
-          <button className="p-2.5 bg-neutral-100 rounded-2xl text-neutral-400 active:scale-90 transition-all">
-            <Settings size={22} strokeWidth={2.5} />
-          </button>
+        <header className="shrink-0 bg-white pt-4 pb-3 px-6 flex flex-col gap-2 border-b border-neutral-50">
+          <div className="flex items-center gap-1.5 opacity-60">
+            <div className="w-5 h-5 bg-neutral-900 rounded flex items-center justify-center text-white">
+              <Zap size={10} fill="currentColor" />
+            </div>
+            <span className="text-[10px] font-black tracking-tighter uppercase italic text-neutral-900">Nyem</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-black text-neutral-900 tracking-tighter uppercase italic">Account</h2>
+            <button className="p-2.5 bg-neutral-100 rounded-2xl text-neutral-400 active:scale-90 transition-all">
+              <Settings size={20} strokeWidth={2.5} />
+            </button>
+          </div>
         </header>
       )}
 
       <div className="flex-1 relative z-10 flex flex-col items-center overflow-y-auto no-scrollbar">
         <main className="w-full max-w-[420px] flex flex-col items-center pt-2 pb-40 px-4 h-full">
           {activePage === 'discover' ? (
-            <div className="relative w-full h-[76vh] mb-4">
+            <div className="relative w-full h-[86vh] mb-0">
               <AnimatePresence mode="popLayout">
                 {activeTab === 'marketplace' ? (
                   items.length > 0 ? (
@@ -163,7 +241,7 @@ export const App = () => {
               </AnimatePresence>
               
               {activePage === 'discover' && activeTab === 'marketplace' && items.length > 0 && (
-                <div className="absolute -bottom-28 left-0 right-0 z-[110]">
+                <div className="absolute -bottom-24 left-0 right-0 z-[110]">
                   <SwipeControls 
                     onUndo={undoLast} onNope={() => setTriggerDir('left')}
                     onStar={() => setTriggerDir('up')} onLike={() => setTriggerDir('right')}
@@ -182,23 +260,114 @@ export const App = () => {
         </main>
       </div>
 
-      <Modal isOpen={!!selectedProduct} onClose={() => setSelectedProduct(null)} title="Specifications" fullHeight>
+      {/* Enhanced Item Details Modal */}
+      <Modal isOpen={!!selectedProduct} onClose={() => setSelectedProduct(null)} title="Item Details" fullHeight>
         {selectedProduct && (
-          <div className="flex flex-col gap-6">
-            <div className="aspect-video rounded-3xl overflow-hidden border border-neutral-100"><img src={selectedProduct.images[0]} className="w-full h-full object-cover" /></div>
-            <div className="px-1">
-              <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">{selectedProduct.category}</span>
-              <h2 className="text-2xl font-black text-neutral-900 tracking-tighter mt-1">{selectedProduct.name}</h2>
-              <p className="text-xl font-black text-[#15D491] mt-1.5">{selectedProduct.price}</p>
-              <p className="text-neutral-500 text-sm font-medium mt-4 leading-relaxed">{selectedProduct.longDescription}</p>
+          <div className="flex flex-col gap-6 pb-20">
+            {/* Image Gallery */}
+            <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
+              {selectedProduct.images.map((img, i) => (
+                <div key={i} className="flex-shrink-0 w-full snap-center aspect-video rounded-3xl overflow-hidden border border-neutral-100 bg-neutral-50 shadow-sm">
+                  <img src={img} className="w-full h-full object-cover" />
+                </div>
+              ))}
             </div>
-            <button className="w-full bg-neutral-900 text-white py-5 rounded-2xl font-black uppercase text-[10px] mt-4 shadow-xl">Start Chat</button>
+
+            {/* Title & Price Section */}
+            <div className="px-1 flex justify-between items-start">
+              <div>
+                <span className="text-[9px] font-black text-indigo-600 uppercase tracking-[0.2em]">{selectedProduct.category}</span>
+                <h2 className="text-3xl font-black text-neutral-900 tracking-tighter mt-1 leading-none">{selectedProduct.name}</h2>
+                <div className="flex items-center gap-2 mt-3">
+                  <span className="text-2xl font-black text-indigo-600 tracking-tighter">{selectedProduct.price}</span>
+                  <span className="text-[9px] font-black text-neutral-300 uppercase tracking-widest bg-neutral-50 px-2 py-1 rounded-lg">Negotiable</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => handleShare(selectedProduct)}
+                className="p-3 bg-neutral-100 rounded-2xl text-neutral-900 active:scale-90 transition-all"
+              >
+                <Share2 size={20} />
+              </button>
+            </div>
+
+            <div className="h-px bg-neutral-100 w-full" />
+
+            {/* Description Section */}
+            <div className="px-1">
+              <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] mb-3">The Story</h4>
+              <p className="text-neutral-600 text-sm font-medium leading-relaxed">
+                {selectedProduct.longDescription}
+              </p>
+            </div>
+
+            {/* Seller Mini Profile Section */}
+            <div className="px-1 space-y-4">
+              <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em]">Verified Seller</h4>
+              <div 
+                onClick={() => openSellerProfile(selectedProduct.vendor)}
+                className="bg-neutral-50 rounded-[2rem] p-4 flex items-center justify-between border border-neutral-100 cursor-pointer active:scale-[0.98] transition-all hover:bg-neutral-100 group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <img src={selectedProduct.vendor.avatar} className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm" />
+                    {selectedProduct.vendor.verified && (
+                      <div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full text-indigo-600 shadow-sm">
+                        <BadgeCheck size={14} fill="currentColor" />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-sm font-black text-neutral-900 uppercase tracking-tight">{selectedProduct.vendor.name}</h4>
+                    </div>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <RatingStars rating={selectedProduct.vendor.rating} />
+                      <span className="text-[9px] font-black text-neutral-300 uppercase tracking-widest flex items-center gap-1">
+                        <MapPin size={10} /> {selectedProduct.vendor.location}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-3 bg-white rounded-xl text-neutral-400 group-hover:text-neutral-900 transition-colors shadow-sm">
+                  <ChevronRight size={18} strokeWidth={3} />
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Action Button in Details */}
+            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent pt-10">
+              <button className="w-full bg-neutral-900 text-white py-5 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl active:scale-95 transition-all">
+                Start Chat Now
+              </button>
+            </div>
           </div>
         )}
       </Modal>
 
+      {/* Full Seller Profile Modal */}
+      <Modal 
+        isOpen={!!viewingSeller} 
+        onClose={() => setViewingSeller(null)} 
+        title="Seller Profile" 
+        fullHeight
+        showBack
+        onBack={() => setViewingSeller(null)}
+      >
+        {viewingSeller && (
+          <SellerProfileView 
+            vendor={viewingSeller} 
+            onClose={() => setViewingSeller(null)}
+            onProductClick={(p) => {
+              setViewingSeller(null);
+              setSelectedProduct(p);
+            }}
+          />
+        )}
+      </Modal>
+
       <Modal isOpen={showWishlist} onClose={() => setShowWishlist(false)} title="Your Wishlist" fullHeight>
-        <div className="space-y-4">
+        <div className="space-y-4 pb-10">
           {likedItems.length > 0 ? (
             likedItems.map((item) => (
               <div key={item.id} className="flex items-center gap-4 p-3 bg-neutral-50 rounded-2xl border border-neutral-100 group">
@@ -211,7 +380,7 @@ export const App = () => {
                     <span className="text-[8px] font-black text-indigo-600 uppercase tracking-widest">{item.category}</span>
                   </div>
                   <h4 className="text-sm font-black text-neutral-900 truncate tracking-tight">{item.name}</h4>
-                  <p className="text-xs font-black text-[#15D491] mt-0.5">{item.price}</p>
+                  <p className="text-xs font-black text-indigo-600 mt-0.5">{item.price}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <button 
                       onClick={() => { setSelectedProduct(item); setShowWishlist(false); }}
@@ -227,7 +396,10 @@ export const App = () => {
                     </button>
                   </div>
                 </div>
-                <button className="p-3 bg-white rounded-xl shadow-sm border border-neutral-100 text-neutral-900 active:scale-90 transition-all">
+                <button 
+                  onClick={() => { setShowWishlist(false); setSelectedProduct(item); }}
+                  className="p-3 bg-white rounded-xl shadow-sm border border-neutral-100 text-neutral-900 active:scale-90 transition-all"
+                >
                   <MessageSquare size={18} strokeWidth={2.5} />
                 </button>
               </div>
@@ -306,10 +478,25 @@ export const App = () => {
       )}
 
       <AnimatePresence>
-        {showSellerToast && (
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }} className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-neutral-900/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl flex items-center gap-2.5 z-[200] shadow-xl">
-            <CheckCircle2 size={14} className="text-[#29B3F0]" />
-            <span className="text-[10px] font-black uppercase tracking-[0.1em]">Request Sent</span>
+        {showSellerToast && lastSparkedItem && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, x: '-50%', scale: 0.9 }} 
+            animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }} 
+            exit={{ opacity: 0, y: 40, x: '-50%', scale: 0.9 }} 
+            className="fixed bottom-36 left-1/2 -translate-x-1/2 w-[85%] max-w-[340px] bg-white/20 backdrop-blur-[40px] px-5 py-4 rounded-[2.5rem] flex items-center gap-4 z-[200] shadow-[0_25px_60px_-12px_rgba(0,0,0,0.12)] border border-white/40 ring-1 ring-black/5"
+          >
+            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-md flex-shrink-0 border border-white/50">
+              <img src={lastSparkedItem.images[0]} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Zap size={10} className="text-[#29B3F0]" fill="currentColor" />
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#29B3F0] leading-none">Spark Sent!</span>
+              </div>
+              <span className="text-[11px] font-black uppercase tracking-tight text-neutral-900 truncate">
+                Interest confirmed for {lastSparkedItem.name}
+              </span>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

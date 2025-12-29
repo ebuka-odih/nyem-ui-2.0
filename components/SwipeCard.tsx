@@ -93,12 +93,12 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           ))}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
         
-        {/* Info Overlay - Increased bottom padding significantly to push content down */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 pb-12 text-white pointer-events-none">
+        {/* Info Overlay - Reduced bottom padding to push content closer to the edge */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 pb-5 text-white pointer-events-none">
           {/* Vendor Info (Top) */}
-          <div className="flex items-center gap-2.5 mb-4 drop-shadow-lg">
+          <div className="flex items-center gap-2.5 mb-3 drop-shadow-lg">
             <img src={product.vendor.avatar} className="w-10 h-10 rounded-full border-2 border-white/20 object-cover shadow-lg" />
             <div className="flex flex-col">
               <span className="text-base font-black text-white leading-tight tracking-tight">{product.vendor.name}</span>
@@ -111,16 +111,16 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
 
           {/* Product Info & Price Row */}
           <div className="flex justify-between items-end gap-3">
-            <div className="flex-1 space-y-2">
-              <h2 className="text-3xl sm:text-4xl font-black leading-[0.9] tracking-tighter drop-shadow-2xl">
+            <div className="flex-1 space-y-1.5">
+              <h2 className="text-3xl sm:text-4xl font-black leading-[0.85] tracking-tighter drop-shadow-2xl">
                 {product.name}
               </h2>
               <div className="inline-block px-3 py-1 rounded-lg bg-white/10 backdrop-blur-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.2em]">
                 {product.category}
               </div>
             </div>
-            <div className="flex-shrink-0 mb-1">
-              <div className="text-xl font-black text-[#15D491] bg-black/80 px-4 py-2 rounded-xl backdrop-blur-xl border border-white/10 tracking-tighter shadow-2xl">
+            <div className="flex-shrink-0">
+              <div className="text-xl font-black text-indigo-400 bg-black/80 px-4 py-2 rounded-xl backdrop-blur-xl border border-white/10 tracking-tighter shadow-2xl">
                 {product.price}
               </div>
             </div>
@@ -142,4 +142,3 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
     </motion.div>
   );
 };
-

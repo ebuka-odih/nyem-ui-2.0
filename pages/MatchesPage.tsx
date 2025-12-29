@@ -140,6 +140,12 @@ export const MatchesPage: React.FC<MatchesPageProps> = ({ onChatToggle }) => {
     setAcceptingRequestId(request.id);
   };
 
+  const sendNativeNotification = (title: string, body: string, icon?: string) => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(title, { body, icon });
+    }
+  };
+
   const confirmAccept = (request: MatchRequest) => {
     const newChat: ChatMessage = {
       id: `c-${request.id}`,
@@ -151,8 +157,16 @@ export const MatchesPage: React.FC<MatchesPageProps> = ({ onChatToggle }) => {
       isOnline: true,
       itemName: request.itemName,
       itemImage: request.itemImage,
-      itemPrice: '₦0.00' // In a real app, this would be the item price
+      itemPrice: '₦0.00' 
     };
+    
+    // Notify the simulated buyer that their request was approved
+    sendNativeNotification(
+      "Drop Accepted! ✅",
+      `${request.userName} accepted your interest in "${request.itemName}". Go to inbox to chat!`,
+      request.itemImage
+    );
+
     setChats([newChat, ...chats]);
     setRequests(prev => prev.filter(r => r.id !== request.id));
     setAcceptingRequestId(null);
