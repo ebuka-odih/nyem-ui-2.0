@@ -95,7 +95,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
         
-        {/* Info Overlay - Reduced bottom padding to push content closer to the edge */}
+        {/* Info Overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-6 pb-5 text-white pointer-events-none">
           {/* Vendor Info (Top) */}
           <div className="flex items-center gap-2.5 mb-3 drop-shadow-lg">

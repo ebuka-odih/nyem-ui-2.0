@@ -207,9 +207,21 @@ export const App = () => {
       )}
 
       <div className="flex-1 relative z-10 flex flex-col items-center overflow-y-auto no-scrollbar">
-        <main className="w-full max-w-[420px] flex flex-col items-center pt-2 pb-40 px-4 h-full">
+        <main className="w-full max-w-[420px] flex flex-col items-center pt-1 pb-40 px-4 h-full">
           {activePage === 'discover' ? (
-            <div className="relative w-full h-[86vh] mb-0">
+            <div className="relative w-full h-[86vh] mb-0 pt-8">
+              {/* External Discovery Location Label - Absolute Positioning */}
+              {activeTab === 'marketplace' && items.length > 0 && (
+                <div className="absolute top-0 left-0 right-0 flex justify-center w-full z-0">
+                  <div className="px-3 py-1 rounded-full bg-neutral-50/80 border border-neutral-100 flex items-center gap-2 shadow-sm scale-90 sm:scale-100">
+                    <MapPin size={10} className="text-indigo-600" />
+                    <span className="text-[8px] sm:text-[9px] font-black text-neutral-400 uppercase tracking-[0.2em]">
+                      Discovery in <span className="text-neutral-900">{currentCity}</span>
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <AnimatePresence mode="popLayout">
                 {activeTab === 'marketplace' ? (
                   items.length > 0 ? (
