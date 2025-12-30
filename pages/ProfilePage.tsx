@@ -1,12 +1,10 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Settings, 
   ShieldCheck, 
   MapPin, 
   Package, 
-  Heart, 
   Star, 
   Wallet, 
   ChevronRight, 
@@ -17,9 +15,21 @@ import {
   ExternalLink,
   Edit3,
   BadgeCheck,
-  Zap
+  Zap,
+  ArrowLeft,
+  Plus,
+  Lock,
+  Smartphone,
+  CheckCircle2,
+  Clock,
+  ShieldAlert,
+  SmartphoneNfc,
+  Building2,
+  MoreVertical,
+  Check,
+  Banknote,
+  Shield
 } from 'lucide-react';
-import { RatingStars } from '../components/RatingStars';
 
 const subtleTransition = {
   type: "spring" as const,
@@ -28,8 +38,44 @@ const subtleTransition = {
   mass: 1
 };
 
-export const ProfilePage: React.FC = () => {
+type SubPageView = 'main' | 'notifications' | 'payments' | 'security' | 'history';
+
+interface ProfilePageProps {
+  forceSettingsTab?: boolean;
+}
+
+const CustomToggle: React.FC<{ active: boolean; onClick: () => void }> = ({ active, onClick }) => (
+  <button 
+    onClick={(e) => { e.stopPropagation(); onClick(); }}
+    className={`w-12 h-6 rounded-full relative flex items-center px-1 transition-colors duration-300 ${active ? 'bg-indigo-600' : 'bg-neutral-200'}`}
+  >
+    <motion.div 
+      animate={{ x: active ? 24 : 0 }}
+      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      className="w-4 h-4 bg-white rounded-full shadow-md"
+    />
+  </button>
+);
+
+export const ProfilePage: React.FC<ProfilePageProps> = ({ forceSettingsTab }) => {
   const [activeTab, setActiveTab] = useState<'drops' | 'settings'>('drops');
+  const [currentView, setCurrentView] = useState<SubPageView>('main');
+  
+  // Settings States
+  const [notifs, setNotifs] = useState({ push: true });
+  const [escrowActive, setEscrowActive] = useState(true);
+  const [bankDetails, setBankDetails] = useState({
+    bankName: "Kuda Microfinance Bank",
+    accountNumber: "2044291024",
+    accountName: "Alex Thompson"
+  });
+
+  useEffect(() => {
+    if (forceSettingsTab) {
+      setActiveTab('settings');
+      setCurrentView('main');
+    }
+  }, [forceSettingsTab]);
 
   const stats = [
     { label: 'Deals', value: '24', icon: Package },
@@ -38,10 +84,10 @@ export const ProfilePage: React.FC = () => {
   ];
 
   const menuItems = [
-    { label: 'Notification Settings', icon: Bell, color: 'text-indigo-600' },
-    { label: 'Payment Methods', icon: CreditCard, color: 'text-emerald-600' },
-    { label: 'Security & Password', icon: ShieldCheck, color: 'text-neutral-900' },
-    { label: 'Trade History', icon: History, color: 'text-neutral-900' },
+    { id: 'notifications', label: 'Notification Settings', icon: Bell, color: 'text-indigo-600' },
+    { id: 'payments', label: 'Escrow & Payments', icon: CreditCard, color: 'text-emerald-600' },
+    { id: 'security', label: 'Security & Password', icon: ShieldCheck, color: 'text-neutral-900' },
+    { id: 'history', label: 'Trade History', icon: History, color: 'text-neutral-900' },
   ];
 
   const myDrops = [
@@ -63,155 +109,397 @@ export const ProfilePage: React.FC = () => {
     }
   ];
 
+  const renderSubPage = () => {
+    switch (currentView) {
+      case 'notifications':
+        return (
+          <div className="space-y-4">
+            <div className="bg-white border border-neutral-100 rounded-[2rem] p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0">
+                  <h4 className="text-sm font-black text-neutral-900 uppercase tracking-tight">Push Notifications</h4>
+                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-1">Chat messages and system alerts</p>
+                </div>
+                <CustomToggle active={notifs.push} onClick={() => setNotifs({...notifs, push: !notifs.push})} />
+              </div>
+            </div>
+            
+            <div className="p-5 bg-indigo-50 rounded-3xl border border-indigo-100 flex gap-4 items-start">
+              <Zap size={18} className="text-indigo-600 shrink-0 mt-0.5" />
+              <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest leading-relaxed">
+                Stay updated on the latest drops in your area by enabling location-based alerts in your phone settings.
+              </p>
+            </div>
+          </div>
+        );
+      case 'payments':
+        return (
+          <div className="space-y-6">
+            {/* Escrow Activation Card */}
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-neutral-400 uppercase tracking-widest px-1">Escrow Status</label>
+              <div 
+                onClick={() => setEscrowActive(!escrowActive)}
+                className={`p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer ${escrowActive ? 'bg-emerald-50 border-emerald-500 shadow-xl shadow-emerald-100' : 'bg-white border-neutral-100 shadow-sm'}`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-2xl ${escrowActive ? 'bg-emerald-500 text-white' : 'bg-neutral-100 text-neutral-400'}`}>
+                    <Shield size={24} strokeWidth={2.5} />
+                  </div>
+                  <CustomToggle active={escrowActive} onClick={() => setEscrowActive(!escrowActive)} />
+                </div>
+                <div className="space-y-1">
+                  <h4 className={`text-base font-black uppercase tracking-tight ${escrowActive ? 'text-emerald-900' : 'text-neutral-900'}`}>
+                    {escrowActive ? 'Escrow Protection Active' : 'Escrow Protection Disabled'}
+                  </h4>
+                  <p className={`text-[10px] font-bold uppercase tracking-widest leading-relaxed ${escrowActive ? 'text-emerald-600' : 'text-neutral-400'}`}>
+                    {escrowActive 
+                      ? 'Your deals are secured by Nyem Escrow. Funds are held until buyers confirm delivery.' 
+                      : 'Activate escrow to build trust and protect your transactions from disputes.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Withdrawal Destination */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <label className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Withdrawal Destination</label>
+                <button className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-1">
+                  <Edit3 size={12} /> Edit
+                </button>
+              </div>
+              
+              <div className="bg-white border border-neutral-100 rounded-[2.5rem] p-6 shadow-sm space-y-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-neutral-900 rounded-2xl flex items-center justify-center text-white">
+                    <Building2 size={24} />
+                  </div>
+                  <div className="min-w-0">
+                    <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-1">Bank Name</h5>
+                    <p className="text-sm font-black text-neutral-900 truncate">{bankDetails.bankName}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="min-w-0">
+                    <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-1">Account Number</h5>
+                    <p className="text-sm font-black text-neutral-900 tracking-[0.1em]">{bankDetails.accountNumber}</p>
+                  </div>
+                  <div className="min-w-0">
+                    <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-1">Recipient Name</h5>
+                    <p className="text-sm font-black text-neutral-900 truncate uppercase">{bankDetails.accountName}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-neutral-50 rounded-3xl p-4 border border-neutral-100 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-emerald-500 shadow-sm">
+                  <CheckCircle2 size={16} strokeWidth={3} />
+                </div>
+                <p className="text-[9px] font-black text-neutral-400 uppercase tracking-widest">Account verified for instant settlement</p>
+              </div>
+            </div>
+
+            <button className="w-full bg-neutral-900 text-white py-6 rounded-[2rem] font-black uppercase tracking-[0.25em] text-[11px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
+              <Banknote size={16} strokeWidth={2.5} />
+              Save Payment Settings
+            </button>
+          </div>
+        );
+      case 'security':
+        return (
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-neutral-400 uppercase tracking-widest px-1">Authentication</label>
+              <div className="bg-white border border-neutral-100 rounded-[2rem] p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+                      <SmartphoneNfc size={22} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-neutral-900 tracking-tight">Two-Factor Auth</h4>
+                      <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mt-1 flex items-center gap-1">
+                        <Check size={10} strokeWidth={4} /> Enabled
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={18} className="text-neutral-200" />
+                </div>
+                <div className="h-px bg-neutral-50" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                      <Lock size={22} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-neutral-900 tracking-tight">Biometric Login</h4>
+                      <p className="text-[9px] font-black text-neutral-300 uppercase tracking-widest mt-1">FaceID or Fingerprint</p>
+                    </div>
+                  </div>
+                  <CustomToggle active={true} onClick={() => {}} />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-neutral-400 uppercase tracking-widest px-1">Active Sessions</label>
+              <div className="bg-white border border-neutral-100 rounded-[2rem] p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-neutral-50 flex items-center justify-center text-neutral-400">
+                    <Smartphone size={18} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-neutral-900 tracking-tight">iPhone 15 Pro</h4>
+                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mt-1">Current Device</p>
+                  </div>
+                </div>
+                <span className="text-[8px] font-black text-neutral-300 uppercase tracking-widest px-2 py-1 bg-neutral-50 rounded-lg">Lagos, NG</span>
+              </div>
+            </div>
+            
+            <button className="w-full py-5 bg-neutral-900 text-white rounded-[2rem] font-black uppercase tracking-[0.25em] text-[10px] shadow-xl active:scale-95 transition-all">
+              Change Login Password
+            </button>
+          </div>
+        );
+      case 'history':
+        return (
+          <div className="space-y-4">
+            {[
+              { id: '1', item: 'Nike Air Max', price: '₦125,000', date: 'Oct 12, 2023', type: 'PURCHASE', img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=100' },
+              { id: '2', item: 'Sony WH-1000XM5', price: '₦340,000', date: 'Sep 28, 2023', type: 'SALE', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=100' },
+              { id: '3', item: 'Coffee Grinder', price: '₦45,000', date: 'Sep 15, 2023', type: 'PURCHASE', img: 'https://images.unsplash.com/photo-1544350285-1811bc3bb970?auto=format&fit=crop&q=80&w=100' }
+            ].map((order) => (
+              <div key={order.id} className="bg-white border border-neutral-100 rounded-[2.5rem] p-4 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border border-neutral-100 shrink-0">
+                  <img src={order.img} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col">
+                      <span className={`text-[8px] font-black px-2 py-0.5 rounded-full w-fit mb-1 ${order.type === 'SALE' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                        {order.type}
+                      </span>
+                      <h4 className="text-sm font-black text-neutral-900 tracking-tight uppercase truncate">{order.item}</h4>
+                    </div>
+                    <span className="text-xs font-black text-neutral-900">{order.price}</span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <p className="text-[9px] font-bold text-neutral-300 uppercase tracking-widest flex items-center gap-1">
+                      <Clock size={10} /> {order.date}
+                    </p>
+                    <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
+                      <CheckCircle2 size={10} /> Completed
+                    </span>
+                  </div>
+                </div>
+                <button className="p-2 text-neutral-200 hover:text-neutral-900 transition-colors">
+                  <ChevronRight size={18} strokeWidth={3} />
+                </button>
+              </div>
+            ))}
+            
+            <button className="w-full py-5 text-[10px] font-black text-neutral-300 uppercase tracking-[0.25em] mt-4 flex items-center justify-center gap-2">
+              <History size={14} /> Request Transaction Export
+            </button>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={subtleTransition}
-      className="w-full max-w-2xl mx-auto flex flex-col pb-40 px-4"
+      className="w-full max-w-2xl mx-auto flex flex-col pb-48 px-4"
     >
-      {/* Profile Header */}
-      <div className="flex flex-col items-center pt-8 pb-10">
-        <div className="relative mb-6">
-          <div className="w-28 h-28 rounded-[2.5rem] bg-indigo-50 border-4 border-white shadow-xl overflow-hidden">
-            <img 
-              src="https://i.pravatar.cc/300?u=current_user" 
-              className="w-full h-full object-cover" 
-              alt="Profile"
-            />
-          </div>
-          <button className="absolute -bottom-1 -right-1 bg-white p-2.5 rounded-2xl shadow-lg border border-neutral-100 text-neutral-900 active:scale-90 transition-all">
-            <Edit3 size={16} strokeWidth={2.5} />
-          </button>
-        </div>
-        
-        <div className="text-center space-y-1">
-          <div className="flex items-center justify-center gap-2">
-            <h2 className="text-2xl font-black text-neutral-900 tracking-tighter uppercase italic">Alex Thompson</h2>
-            <BadgeCheck size={20} className="text-indigo-600" fill="currentColor" />
-          </div>
-          <p className="text-xs font-black text-neutral-400 uppercase tracking-[0.2em] flex items-center justify-center gap-1.5">
-            <MapPin size={12} /> Victoria Island, Lagos
-          </p>
-        </div>
-      </div>
-
-      {/* Wallet / Escrow Card */}
-      <div className="bg-neutral-900 rounded-[2.5rem] p-6 mb-8 shadow-2xl shadow-indigo-100/50 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-500/20 transition-colors" />
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white">
-                <Wallet size={20} strokeWidth={2.5} />
-              </div>
-              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Escrow Balance</span>
-            </div>
-            <button className="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1 hover:text-white transition-colors">
-              Details <ExternalLink size={12} />
-            </button>
-          </div>
-          <div className="flex items-end justify-between">
-            <h3 className="text-3xl font-black text-white tracking-tighter">₦420,500.00</h3>
-            <button className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
-              Withdraw
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-white border border-neutral-100 rounded-3xl p-4 flex flex-col items-center text-center">
-            <stat.icon size={18} className="text-neutral-400 mb-2" />
-            <span className="text-lg font-black text-neutral-900 leading-none">{stat.value}</span>
-            <span className="text-[8px] font-black text-neutral-300 uppercase tracking-widest mt-1.5">{stat.label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Content Tabs */}
-      <div className="flex gap-4 mb-6">
-        <button 
-          onClick={() => setActiveTab('drops')}
-          className={`relative px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'drops' ? 'bg-neutral-900 text-white shadow-lg' : 'bg-white text-neutral-400 border border-neutral-100'}`}
-        >
-          My Drops
-        </button>
-        <button 
-          onClick={() => setActiveTab('settings')}
-          className={`relative px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'settings' ? 'bg-neutral-900 text-white shadow-lg' : 'bg-white text-neutral-400 border border-neutral-100'}`}
-        >
-          Account
-        </button>
-      </div>
-
       <AnimatePresence mode="wait">
-        {activeTab === 'drops' ? (
+        {currentView === 'main' ? (
           <motion.div 
-            key="drops-list"
+            key="main-profile"
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 10 }}
-            className="space-y-3"
+            className="w-full"
           >
-            {myDrops.map((drop) => (
-              <div key={drop.id} className="bg-white border border-neutral-100 rounded-[2rem] p-3 flex items-center gap-4 group">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden border border-neutral-100">
-                  <img src={drop.image} className="w-full h-full object-cover" alt={drop.name} />
+            {/* Profile Header */}
+            <div className="flex flex-col items-center pt-8 pb-10">
+              <div className="relative mb-6">
+                <div className="w-28 h-28 rounded-[2.5rem] bg-indigo-50 border-4 border-white shadow-xl overflow-hidden">
+                  <img 
+                    src="https://i.pravatar.cc/300?u=current_user" 
+                    className="w-full h-full object-cover" 
+                    alt="Profile"
+                  />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${drop.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-neutral-100 text-neutral-400'}`}>
-                      {drop.status}
-                    </span>
-                    <span className="text-[8px] font-black text-neutral-300 uppercase tracking-widest">{drop.views} Views</span>
-                  </div>
-                  <h4 className="text-sm font-black text-neutral-900 truncate tracking-tight">{drop.name}</h4>
-                  <p className="text-xs font-black text-indigo-600 mt-0.5">{drop.price}</p>
-                </div>
-                <button className="p-3 text-neutral-300 hover:text-neutral-900 transition-colors">
-                  <ChevronRight size={20} strokeWidth={3} />
+                <button className="absolute -bottom-1 -right-1 bg-white p-2.5 rounded-2xl shadow-lg border border-neutral-100 text-neutral-900 active:scale-90 transition-all">
+                  <Edit3 size={16} strokeWidth={2.5} />
                 </button>
               </div>
-            ))}
-            <button className="w-full py-6 border-2 border-dashed border-neutral-100 rounded-[2rem] flex flex-col items-center justify-center gap-2 text-neutral-300 hover:border-indigo-100 hover:text-indigo-400 transition-all group">
-              <Zap size={24} className="group-hover:scale-110 transition-transform" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Post a new drop</span>
-            </button>
+              
+              <div className="text-center space-y-1">
+                <div className="flex items-center justify-center gap-2">
+                  <h2 className="text-2xl font-black text-neutral-900 tracking-tighter uppercase italic">Alex Thompson</h2>
+                  <BadgeCheck size={20} className="text-indigo-600" fill="currentColor" />
+                </div>
+                <p className="text-xs font-black text-neutral-400 uppercase tracking-[0.2em] flex items-center justify-center gap-1.5">
+                  <MapPin size={12} /> Victoria Island, Lagos
+                </p>
+              </div>
+            </div>
+
+            {/* Wallet / Escrow Card */}
+            <div className="bg-neutral-900 rounded-[2.5rem] p-6 mb-8 shadow-2xl shadow-indigo-100/50 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-indigo-500/20 transition-colors" />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white">
+                      <Wallet size={20} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Escrow Balance</span>
+                  </div>
+                  <button className="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1 hover:text-white transition-colors">
+                    Details <ExternalLink size={12} />
+                  </button>
+                </div>
+                <div className="flex items-end justify-between">
+                  <h3 className="text-3xl font-black text-white tracking-tighter">₦420,500.00</h3>
+                  <button className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                    Withdraw
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-3 mb-8">
+              {stats.map((stat) => (
+                <div key={stat.label} className="bg-white border border-neutral-100 rounded-3xl p-4 flex flex-col items-center text-center">
+                  <stat.icon size={18} className="text-neutral-400 mb-2" />
+                  <span className="text-lg font-black text-neutral-900 leading-none">{stat.value}</span>
+                  <span className="text-[8px] font-black text-neutral-300 uppercase tracking-widest mt-1.5">{stat.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Content Tabs */}
+            <div className="flex gap-4 mb-6">
+              <button 
+                onClick={() => setActiveTab('drops')}
+                className={`relative px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'drops' ? 'bg-neutral-900 text-white shadow-lg' : 'bg-white text-neutral-400 border border-neutral-100'}`}
+              >
+                My Drops
+              </button>
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className={`relative px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'settings' ? 'bg-neutral-900 text-white shadow-lg' : 'bg-white text-neutral-400 border border-neutral-100'}`}
+              >
+                Account
+              </button>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {activeTab === 'drops' ? (
+                <motion.div 
+                  key="drops-list"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  className="space-y-3"
+                >
+                  {myDrops.map((drop) => (
+                    <div key={drop.id} className="bg-white border border-neutral-100 rounded-[2rem] p-3 flex items-center gap-4 group">
+                      <div className="w-20 h-20 rounded-2xl overflow-hidden border border-neutral-100">
+                        <img src={drop.image} className="w-full h-full object-cover" alt={drop.name} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${drop.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-neutral-100 text-neutral-400'}`}>
+                            {drop.status}
+                          </span>
+                          <span className="text-[8px] font-black text-neutral-300 uppercase tracking-widest">{drop.views} Views</span>
+                        </div>
+                        <h4 className="text-sm font-black text-neutral-900 truncate tracking-tight">{drop.name}</h4>
+                        <p className="text-xs font-black text-indigo-600 mt-0.5">{drop.price}</p>
+                      </div>
+                      <button className="p-3 text-neutral-300 hover:text-neutral-900 transition-colors">
+                        <ChevronRight size={20} strokeWidth={3} />
+                      </button>
+                    </div>
+                  ))}
+                  <button className="w-full py-6 border-2 border-dashed border-neutral-100 rounded-[2rem] flex flex-col items-center justify-center gap-2 text-neutral-300 hover:border-indigo-100 hover:text-indigo-400 transition-all group">
+                    <Zap size={24} className="group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Post a new drop</span>
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="settings-list"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  className="space-y-2 pb-24"
+                >
+                  {menuItems.map((item) => (
+                    <button 
+                      key={item.label}
+                      onClick={() => setCurrentView(item.id as SubPageView)}
+                      className="w-full flex items-center justify-between p-4 bg-white border border-neutral-100 rounded-[1.5rem] hover:bg-neutral-50 active:scale-[0.99] transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`p-2.5 bg-neutral-50 rounded-xl ${item.color}`}>
+                          <item.icon size={20} strokeWidth={2.5} />
+                        </div>
+                        <span className="text-sm font-black text-neutral-900 tracking-tight">{item.label}</span>
+                      </div>
+                      <ChevronRight size={18} className="text-neutral-200" strokeWidth={3} />
+                    </button>
+                  ))}
+                  
+                  <button className="w-full flex items-center justify-between p-4 bg-rose-50 border border-rose-100 rounded-[1.5rem] mt-6 hover:bg-rose-100 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2.5 bg-white rounded-xl text-rose-500 shadow-sm">
+                        <LogOut size={20} strokeWidth={2.5} />
+                      </div>
+                      <span className="text-sm font-black text-rose-600 tracking-tight">Sign Out</span>
+                    </div>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ) : (
           <motion.div 
-            key="settings-list"
-            initial={{ opacity: 0, x: -10 }}
+            key="sub-page"
+            initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 10 }}
-            className="space-y-2"
+            exit={{ opacity: 0, x: -10 }}
+            className="w-full"
           >
-            {menuItems.map((item) => (
+            <div className="flex items-center gap-4 mb-8 pt-4">
               <button 
-                key={item.label}
-                className="w-full flex items-center justify-between p-4 bg-white border border-neutral-100 rounded-[1.5rem] hover:bg-neutral-50 active:scale-[0.99] transition-all"
+                onClick={() => setCurrentView('main')}
+                className="p-3 bg-neutral-100 rounded-2xl text-neutral-900 active:scale-90 transition-all"
               >
-                <div className="flex items-center gap-4">
-                  <div className={`p-2.5 bg-neutral-50 rounded-xl ${item.color}`}>
-                    <item.icon size={20} strokeWidth={2.5} />
-                  </div>
-                  <span className="text-sm font-black text-neutral-900 tracking-tight">{item.label}</span>
-                </div>
-                <ChevronRight size={18} className="text-neutral-200" strokeWidth={3} />
+                <ArrowLeft size={20} strokeWidth={3} />
               </button>
-            ))}
-            
-            <button className="w-full flex items-center justify-between p-4 bg-rose-50 border border-rose-100 rounded-[1.5rem] mt-4 hover:bg-rose-100 transition-all">
-              <div className="flex items-center gap-4">
-                <div className="p-2.5 bg-white rounded-xl text-rose-500 shadow-sm">
-                  <LogOut size={20} strokeWidth={2.5} />
-                </div>
-                <span className="text-sm font-black text-rose-600 tracking-tight">Sign Out</span>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-indigo-600 uppercase tracking-[0.2em] leading-none mb-1">Account Setting</span>
+                <h3 className="text-xl font-black text-neutral-900 tracking-tighter uppercase italic">
+                  {menuItems.find(i => i.id === currentView)?.label || 'Settings'}
+                </h3>
               </div>
-            </button>
+            </div>
+            
+            <div className="pb-32">
+              {renderSubPage()}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

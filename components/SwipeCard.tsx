@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, useAnimation, PanInfo } from 'framer-motion';
 import { MapPin, Info } from 'lucide-react';
 import { Product } from '../types';
-import { ActionTooltip } from './ActionTooltip';
 
 interface SwipeCardProps {
   product: Product;
@@ -26,9 +24,8 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
   
-  const rotate = useTransform(x, [-200, 200], [-15, 15]);
+  const rotate = useTransform(x, [-200, 200], [-10, 10]);
 
   useEffect(() => {
     if (isTop) {
@@ -40,13 +37,13 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
         controls.start({ scale: 1, y: 0, x: 0, opacity: 1, transition: { type: 'spring', stiffness: 300, damping: 20 } });
       }
     } else {
-      const stackOffset = Math.min(index * 12, 24);
-      const stackScale = 1 - Math.min(index * 0.05, 0.1);
+      const stackOffset = Math.min(index * 8, 16);
+      const stackScale = 1 - Math.min(index * 0.04, 0.08);
       controls.start({ 
         scale: stackScale, 
         y: stackOffset, 
         x: 0, 
-        opacity: index > 2 ? 0 : 1 - (index * 0.3),
+        opacity: index > 2 ? 0 : 1 - (index * 0.15),
         transition: { type: 'spring', stiffness: 300, damping: 30 } 
       });
     }
@@ -54,9 +51,9 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     if (Math.abs(info.offset.x) < 5 && Math.abs(info.offset.y) < 5) return;
-    if (info.offset.x > 150) controls.start({ x: 800, opacity: 0 }).then(() => onSwipe('right'));
-    else if (info.offset.x < -150) controls.start({ x: -800, opacity: 0 }).then(() => onSwipe('left'));
-    else if (info.offset.y < -150) controls.start({ y: -1200, opacity: 0 }).then(() => onSwipe('up'));
+    if (info.offset.x > 120) controls.start({ x: 800, opacity: 0 }).then(() => onSwipe('right'));
+    else if (info.offset.x < -120) controls.start({ x: -800, opacity: 0 }).then(() => onSwipe('left'));
+    else if (info.offset.y < -120) controls.start({ y: -1200, opacity: 0 }).then(() => onSwipe('up'));
     else controls.start({ x: 0, y: 0, rotate: 0 });
   };
 
@@ -75,68 +72,75 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
       drag={isTop}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       onDragEnd={handleDragEnd}
-      whileTap={isTop ? { scale: 0.98 } : {}}
+      whileTap={isTop ? { scale: 0.99 } : {}}
       className={`touch-none ${isTop ? 'cursor-grab active:cursor-grabbing' : 'pointer-events-none'}`}
     >
-      <div className="relative w-full h-full bg-black rounded-[2.5rem] shadow-[0_30px_80px_rgba(0,0,0,0.15)] overflow-hidden border border-neutral-100/10" onClick={handleImageNav}>
+      <div 
+        className="relative w-full h-full bg-black rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.25)] overflow-hidden border border-white/5" 
+        onClick={handleImageNav}
+      >
         <AnimatePresence mode="wait">
           <motion.img 
-            key={product.images[currentImageIndex]} initial={{ opacity: 0.8 }} animate={{ opacity: 1 }} exit={{ opacity: 0.8 }}
-            src={product.images[currentImageIndex]} className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
+            key={product.images[currentImageIndex]} 
+            initial={{ opacity: 0.9 }} animate={{ opacity: 1 }} exit={{ opacity: 0.9 }}
+            src={product.images[currentImageIndex]} 
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
           />
         </AnimatePresence>
         
-        {/* Top Indicators */}
-        <div className="absolute top-4 left-5 right-5 flex gap-1 z-[60]">
+        {/* Story Indicators */}
+        <div className="absolute top-3 left-4 right-4 flex gap-1 z-[60]">
           {product.images.map((_, i) => (
-            <div key={i} className={`h-1 flex-1 rounded-full ${i === currentImageIndex ? 'bg-white shadow-sm' : 'bg-white/30'}`} />
+            <div key={i} className={`h-[2px] flex-1 rounded-full transition-colors ${i === currentImageIndex ? 'bg-white' : 'bg-white/40'}`} />
           ))}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
+        {/* Info Button */}
+        <div className="absolute top-6 right-4 z-[70]">
+          <button 
+            onClick={(e) => { e.stopPropagation(); onShowDetail(product); }}
+            className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 active:scale-90 flex items-center justify-center transition-all shadow-lg"
+          >
+            <Info size={18} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Dark Gradient Bottom - Deepened for control clarity */}
+        <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-black via-black/85 to-transparent pointer-events-none" />
         
-        {/* Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 pb-5 text-white pointer-events-none">
-          {/* Vendor Info (Top) */}
-          <div className="flex items-center gap-2.5 mb-3 drop-shadow-lg">
-            <img src={product.vendor.avatar} className="w-10 h-10 rounded-full border-2 border-white/20 object-cover shadow-lg" />
+        {/* Content Overlay - Reduced pb to bring content closer to buttons */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 pb-24 text-white pointer-events-none">
+          {/* Vendor Section */}
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <img src={product.vendor.avatar} className="w-10 h-10 rounded-full border-2 border-white/40 object-cover shadow-lg" />
             <div className="flex flex-col">
-              <span className="text-base font-black text-white leading-tight tracking-tight">{product.vendor.name}</span>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="px-1.5 py-0.5 rounded bg-white/20 backdrop-blur-md text-[9px] font-black tracking-widest uppercase border border-white/10">{product.distance}</span>
-                <span className="text-[10px] text-white/90 flex items-center gap-1 font-bold"><MapPin size={11} /> {product.vendor.location}</span>
+              <span className="text-[13px] font-black uppercase italic tracking-tight drop-shadow-md">{product.vendor.name}</span>
+              <div className="flex items-center gap-2 mt-0.5">
+                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[8px] font-black uppercase tracking-widest">{product.distance}</span>
+                 <span className="text-[9px] font-bold flex items-center gap-1 opacity-90 drop-shadow-sm"><MapPin size={10} /> {product.vendor.location}</span>
               </div>
             </div>
           </div>
 
-          {/* Product Info & Price Row */}
-          <div className="flex justify-between items-end gap-3">
-            <div className="flex-1 space-y-1.5">
-              <h2 className="text-3xl sm:text-4xl font-black leading-[0.85] tracking-tighter drop-shadow-2xl">
-                {product.name}
-              </h2>
-              <div className="inline-block px-3 py-1 rounded-lg bg-white/10 backdrop-blur-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.2em]">
-                {product.category}
-              </div>
+          {/* Product Title - Reduced size from text-3xl to text-2xl */}
+          <h2 className="text-2xl font-black leading-[0.95] tracking-tighter uppercase italic mb-3 drop-shadow-2xl max-w-[95%]">
+            {product.name}
+          </h2>
+
+          <div className="flex items-center justify-between pointer-events-none">
+            {/* Category Tag */}
+            <div className="px-2.5 py-1 bg-neutral-800/80 backdrop-blur-md rounded-lg border border-white/10 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-200">
+              {product.category}
             </div>
-            <div className="flex-shrink-0">
-              <div className="text-xl font-black text-indigo-400 bg-black/80 px-4 py-2 rounded-xl backdrop-blur-xl border border-white/10 tracking-tighter shadow-2xl">
+            
+            {/* Glow Price Tag */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-emerald-500/30 blur-xl rounded-full" />
+              <div className="relative bg-neutral-900/90 px-3.5 py-2 rounded-xl border border-white/10 text-emerald-400 text-base font-black tracking-tighter shadow-2xl">
                 {product.price}
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Floating Detail Button */}
-        <div className="absolute top-10 right-5 z-[70]">
-          <ActionTooltip label="Show Details" isVisible={showInfoTooltip} offset={-45} />
-          <button 
-            onClick={(e) => { e.stopPropagation(); onShowDetail(product); }}
-            onMouseEnter={() => isTop && setShowInfoTooltip(true)} onMouseLeave={() => setShowInfoTooltip(false)}
-            className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-xl text-white border border-white/10 active:scale-90 shadow-2xl pointer-events-auto"
-          >
-            <Info size={24} strokeWidth={2.5} />
-          </button>
         </div>
       </div>
     </motion.div>

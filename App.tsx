@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { 
@@ -32,6 +31,7 @@ import { Modal } from './components/Modal';
 import { UploadPage } from './pages/UploadPage';
 import { MatchesPage } from './pages/MatchesPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { WelcomePage } from './pages/WelcomePage';
 import { ComingSoonState } from './components/ComingSoonState';
 import { RatingStars } from './components/RatingStars';
 import { SellerProfileView } from './components/SellerProfileView';
@@ -55,8 +55,10 @@ export const App = () => {
 
   const [activeTab, setActiveTab] = useState<'marketplace' | 'services' | 'barter'>('marketplace');
   const [activePage, setActivePage] = useState<'discover' | 'upload' | 'matches' | 'profile'>('discover');
+  const [showWelcome, setShowWelcome] = useState(true);
+  
+  const [forceProfileSettings, setForceProfileSettings] = useState(0);
 
-  // Notification setup
   useEffect(() => {
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
@@ -93,14 +95,11 @@ export const App = () => {
     if (direction === 'up') {
       setLastSparkedItem(swipedItem);
       setShowSellerToast(true);
-      
-      // Trigger Native Notification simulating the Seller's view
       sendNativeNotification(
         "New Super Interest! ⚡️",
         `A buyer is highly interested in your "${swipedItem.name}". Open Nyem to chat!`,
         swipedItem.images[0]
       );
-
       setTimeout(() => setShowSellerToast(false), 3500);
     }
     
@@ -145,138 +144,132 @@ export const App = () => {
     setViewingSeller(vendor);
   };
 
+  const handleProfileSettingsClick = () => {
+    setForceProfileSettings(prev => prev + 1);
+  };
+
   return (
     <div className="h-screen bg-white flex flex-col font-sans select-none relative overflow-hidden">
-      {activePage === 'discover' && (
-        <DiscoverHeader 
-          onFilter={() => setShowFilterDialog(true)} onLocation={() => setShowLocationDialog(true)}
-          onWishlist={() => setShowWishlist(true)} activeCategory={activeCategory}
-          setActiveTab={setActiveTab} activeTab={activeTab} wishlistCount={likedItems.length}
-        />
-      )}
-      {activePage === 'upload' && (
-        <header className="shrink-0 bg-white pt-4 pb-3 px-6 flex flex-col gap-2 border-b border-neutral-50">
-          <div className="flex items-center gap-1.5 opacity-60">
-            <div className="w-5 h-5 bg-neutral-900 rounded flex items-center justify-center text-white">
-              <Zap size={10} fill="currentColor" />
-            </div>
-            <span className="text-[10px] font-black tracking-tighter uppercase italic text-neutral-900">Nyem</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-neutral-900 tracking-tighter uppercase italic">Studio</h2>
-            <button className="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl active:scale-90 transition-all">
-              <Sparkles size={20} strokeWidth={2.5} />
-            </button>
-          </div>
-        </header>
-      )}
-      {activePage === 'matches' && !isChatOpen && (
-        <header className="shrink-0 bg-white pt-4 pb-3 px-6 flex flex-col gap-2 border-b border-neutral-50">
-          <div className="flex items-center gap-1.5 opacity-60">
-            <div className="w-5 h-5 bg-neutral-900 rounded flex items-center justify-center text-white">
-              <Zap size={10} fill="currentColor" />
-            </div>
-            <span className="text-[10px] font-black tracking-tighter uppercase italic text-neutral-900">Nyem</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-neutral-900 tracking-tighter uppercase italic">Inbox</h2>
-            <button 
-              onClick={() => setShowWishlist(true)}
-              className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center active:scale-90 transition-all"
-            >
-              <Zap size={20} fill="currentColor" />
-            </button>
-          </div>
-        </header>
-      )}
-      {activePage === 'profile' && (
-        <header className="shrink-0 bg-white pt-4 pb-3 px-6 flex flex-col gap-2 border-b border-neutral-50">
-          <div className="flex items-center gap-1.5 opacity-60">
-            <div className="w-5 h-5 bg-neutral-900 rounded flex items-center justify-center text-white">
-              <Zap size={10} fill="currentColor" />
-            </div>
-            <span className="text-[10px] font-black tracking-tighter uppercase italic text-neutral-900">Nyem</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-neutral-900 tracking-tighter uppercase italic">Account</h2>
-            <button className="p-2.5 bg-neutral-100 rounded-2xl text-neutral-400 active:scale-90 transition-all">
-              <Settings size={20} strokeWidth={2.5} />
-            </button>
-          </div>
-        </header>
-      )}
+      <AnimatePresence>
+        {showWelcome && (
+          <WelcomePage onStart={() => setShowWelcome(false)} />
+        )}
+      </AnimatePresence>
 
-      <div className="flex-1 relative z-10 flex flex-col items-center overflow-y-auto no-scrollbar">
-        <main className="w-full max-w-[420px] flex flex-col items-center pt-1 pb-40 px-4 h-full">
-          {activePage === 'discover' ? (
-            <div className="relative w-full h-[86vh] mb-0 pt-8">
-              {/* External Discovery Location Label - Absolute Positioning */}
-              {activeTab === 'marketplace' && items.length > 0 && (
-                <div className="absolute top-0 left-0 right-0 flex justify-center w-full z-0">
-                  <div className="px-3 py-1 rounded-full bg-neutral-50/80 border border-neutral-100 flex items-center gap-2 shadow-sm scale-90 sm:scale-100">
-                    <MapPin size={10} className="text-indigo-600" />
-                    <span className="text-[8px] sm:text-[9px] font-black text-neutral-400 uppercase tracking-[0.2em]">
-                      Discovery in <span className="text-neutral-900">{currentCity}</span>
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <AnimatePresence mode="popLayout">
-                {activeTab === 'marketplace' ? (
-                  items.length > 0 ? (
-                    items.map((product: Product, idx: number) => (
-                      <SwipeCard 
-                        key={`${product.id}-${items.length}`} product={product} index={activeIndex - idx} isTop={idx === activeIndex}
-                        onSwipe={handleSwipe} triggerDirection={idx === activeIndex ? triggerDir : null}
-                        onShowDetail={setSelectedProduct}
-                      />
-                    ))
-                  ) : (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="h-full flex flex-col items-center justify-center text-center px-8">
-                      <div className="w-20 h-20 bg-neutral-50 rounded-full flex items-center justify-center mb-6 border border-neutral-100 shadow-inner">
-                        <RotateCcw size={32} className="text-neutral-300" />
-                      </div>
-                      <h3 className="text-xl font-black text-neutral-900 uppercase tracking-tighter">End of the line</h3>
-                      <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em] mt-2 mb-8">No more drops to show right now</p>
-                      <button 
-                        onClick={refreshDrops} 
-                        className="px-10 py-5 bg-neutral-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl active:scale-95 transition-all"
-                      >
-                        Refresh Drops
-                      </button>
-                    </motion.div>
-                  )
-                ) : (
-                  <ComingSoonState type={activeTab === 'services' ? 'services' : 'barter'} />
-                )}
-              </AnimatePresence>
-              
-              {activePage === 'discover' && activeTab === 'marketplace' && items.length > 0 && (
-                <div className="absolute -bottom-24 left-0 right-0 z-[110]">
-                  <SwipeControls 
-                    onUndo={undoLast} onNope={() => setTriggerDir('left')}
-                    onStar={() => setTriggerDir('up')} onLike={() => setTriggerDir('right')}
-                    onShare={handleShare} canUndo={history.length > 0}
-                  />
-                </div>
-              )}
-            </div>
-          ) : activePage === 'upload' ? (
-            <UploadPage />
-          ) : activePage === 'matches' ? (
-            <MatchesPage onChatToggle={setIsChatOpen} />
-          ) : (
-            <ProfilePage />
+      {!showWelcome && (
+        <>
+          {activePage === 'discover' && (
+            <DiscoverHeader 
+              onFilter={() => setShowFilterDialog(true)} onLocation={() => setShowLocationDialog(true)}
+              onWishlist={() => setShowWishlist(true)} activeCategory={activeCategory}
+              setActiveTab={setActiveTab} activeTab={activeTab} wishlistCount={likedItems.length}
+            />
           )}
-        </main>
-      </div>
+          
+          {activePage !== 'discover' && (
+             <header className="shrink-0 bg-white pt-4 pb-3 px-6 flex flex-col gap-2 border-b border-neutral-50">
+                <div className="flex items-center gap-1.5 opacity-60">
+                  <div className="w-5 h-5 bg-neutral-900 rounded flex items-center justify-center text-white">
+                    <Zap size={10} fill="currentColor" />
+                  </div>
+                  <span className="text-[10px] font-black tracking-tighter uppercase italic text-neutral-900">Nyem</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-black text-neutral-900 tracking-tighter uppercase italic">
+                    {activePage === 'upload' ? 'Studio' : activePage === 'matches' ? 'Inbox' : 'Account'}
+                  </h2>
+                  <button 
+                    onClick={activePage === 'profile' ? handleProfileSettingsClick : undefined}
+                    className="p-2.5 bg-neutral-100 rounded-2xl text-neutral-400 active:scale-90 transition-all hover:bg-neutral-200 hover:text-neutral-900"
+                  >
+                    {activePage === 'profile' ? <Settings size={20} strokeWidth={2.5} /> : <Sparkles size={20} strokeWidth={2.5} />}
+                  </button>
+                </div>
+             </header>
+          )}
 
-      {/* Enhanced Item Details Modal */}
+          <div className={`flex-1 relative z-10 no-scrollbar ${activePage === 'discover' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+            <div className="flex flex-col items-center w-full h-full">
+              {/* pb-[66px] makes the card end almost touching the bottom nav (tiny 0.5 spacing) */}
+              <main className={`w-full h-full max-w-[420px] relative ${activePage === 'discover' ? 'px-3 pt-2 pb-[66px]' : 'px-4 pt-4 pb-40'}`}>
+                {activePage === 'discover' ? (
+                  <div className="relative w-full h-full flex flex-col">
+                    <div className="relative flex-1 w-full">
+                      <AnimatePresence mode="popLayout">
+                        {activeTab === 'marketplace' ? (
+                          items.length > 0 ? (
+                            items.map((product: Product, idx: number) => (
+                              <SwipeCard 
+                                key={`${product.id}-${items.length}`} product={product} index={activeIndex - idx} isTop={idx === activeIndex}
+                                onSwipe={handleSwipe} triggerDirection={idx === activeIndex ? triggerDir : null}
+                                onShowDetail={setSelectedProduct}
+                              />
+                            ))
+                          ) : (
+                            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="h-full flex flex-col items-center justify-center text-center px-8">
+                              <div className="w-20 h-20 bg-neutral-50 rounded-full flex items-center justify-center mb-6 border border-neutral-100 shadow-inner">
+                                <RotateCcw size={32} className="text-neutral-300" />
+                              </div>
+                              <h3 className="text-xl font-black text-neutral-900 uppercase tracking-tighter">End of the line</h3>
+                              <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em] mt-2 mb-8">No more drops to show right now</p>
+                              <button 
+                                onClick={refreshDrops} 
+                                className="px-10 py-5 bg-neutral-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl active:scale-95 transition-all"
+                              >
+                                Refresh Drops
+                              </button>
+                            </motion.div>
+                          )
+                        ) : (
+                          <ComingSoonState type={activeTab === 'services' ? 'services' : 'barter'} />
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    
+                    {activePage === 'discover' && activeTab === 'marketplace' && items.length > 0 && (
+                      <div className="absolute bottom-[6px] left-0 right-0 z-[110]">
+                        <SwipeControls 
+                          onUndo={undoLast} onNope={() => setTriggerDir('left')}
+                          onStar={() => setTriggerDir('up')} onLike={() => setTriggerDir('right')}
+                          onShare={handleShare} canUndo={history.length > 0}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : activePage === 'upload' ? (
+                  <UploadPage />
+                ) : activePage === 'matches' ? (
+                  <MatchesPage onChatToggle={setIsChatOpen} />
+                ) : (
+                  <ProfilePage key={`profile-${forceProfileSettings}`} forceSettingsTab={forceProfileSettings > 0} />
+                )}
+              </main>
+            </div>
+          </div>
+
+          {!isChatOpen && (
+            <nav className="fixed bottom-0 left-0 right-0 z-[120] bg-white border-t border-neutral-100 px-4 py-3 pb-safe flex items-center justify-around shadow-[0_-8px_30px_rgba(0,0,0,0.03)]">
+              {(['discover', 'upload', 'matches', 'profile'] as const).map((page) => {
+                const isActive = activePage === page;
+                const icons = { discover: Compass, upload: PlusCircle, matches: MessageSquare, profile: User };
+                const Icon = icons[page];
+                return (
+                  <button key={page} onClick={() => setActivePage(page)} className={`flex flex-col items-center gap-1.5 transition-all duration-300 relative min-w-[70px] ${isActive ? 'text-indigo-600' : 'text-neutral-400'}`}>
+                    <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className="text-[9px] font-black uppercase tracking-widest leading-none">{page}</span>
+                    {isActive && <motion.div layoutId="navIndicator" className="absolute -bottom-1 w-1 h-1 rounded-full bg-indigo-600" />}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
+        </>
+      )}
+
+      {/* Modals remain same */}
       <Modal isOpen={!!selectedProduct} onClose={() => setSelectedProduct(null)} title="Item Details" fullHeight>
         {selectedProduct && (
           <div className="flex flex-col gap-6 pb-20">
-            {/* Image Gallery */}
             <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
               {selectedProduct.images.map((img, i) => (
                 <div key={i} className="flex-shrink-0 w-full snap-center aspect-video rounded-3xl overflow-hidden border border-neutral-100 bg-neutral-50 shadow-sm">
@@ -285,7 +278,6 @@ export const App = () => {
               ))}
             </div>
 
-            {/* Title & Price Section */}
             <div className="px-1 flex justify-between items-start">
               <div>
                 <span className="text-[9px] font-black text-indigo-600 uppercase tracking-[0.2em]">{selectedProduct.category}</span>
@@ -305,7 +297,6 @@ export const App = () => {
 
             <div className="h-px bg-neutral-100 w-full" />
 
-            {/* Description Section */}
             <div className="px-1">
               <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] mb-3">The Story</h4>
               <p className="text-neutral-600 text-sm font-medium leading-relaxed">
@@ -313,7 +304,6 @@ export const App = () => {
               </p>
             </div>
 
-            {/* Seller Mini Profile Section */}
             <div className="px-1 space-y-4">
               <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em]">Verified Seller</h4>
               <div 
@@ -347,7 +337,6 @@ export const App = () => {
               </div>
             </div>
 
-            {/* Sticky Action Button in Details */}
             <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent pt-10">
               <button className="w-full bg-neutral-900 text-white py-5 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl active:scale-95 transition-all">
                 Start Chat Now
@@ -357,7 +346,6 @@ export const App = () => {
         )}
       </Modal>
 
-      {/* Full Seller Profile Modal */}
       <Modal 
         isOpen={!!viewingSeller} 
         onClose={() => setViewingSeller(null)} 
@@ -472,23 +460,6 @@ export const App = () => {
         </div>
       </Modal>
 
-      {!isChatOpen && (
-        <nav className="fixed bottom-0 left-0 right-0 z-[120] bg-white border-t border-neutral-100 px-4 py-3 pb-safe flex items-center justify-around shadow-[0_-8px_30px_rgba(0,0,0,0.03)]">
-          {(['discover', 'upload', 'matches', 'profile'] as const).map((page) => {
-            const isActive = activePage === page;
-            const icons = { discover: Compass, upload: PlusCircle, matches: MessageSquare, profile: User };
-            const Icon = icons[page];
-            return (
-              <button key={page} onClick={() => setActivePage(page)} className={`flex flex-col items-center gap-1.5 transition-all duration-300 relative min-w-[70px] ${isActive ? 'text-indigo-600' : 'text-neutral-400'}`}>
-                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[9px] font-black uppercase tracking-widest leading-none">{page}</span>
-                {isActive && <motion.div layoutId="navIndicator" className="absolute -bottom-1 w-1 h-1 rounded-full bg-indigo-600" />}
-              </button>
-            );
-          })}
-        </nav>
-      )}
-
       <AnimatePresence>
         {showSellerToast && lastSparkedItem && (
           <motion.div 
@@ -503,10 +474,10 @@ export const App = () => {
             <div className="flex flex-col flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-1">
                 <Zap size={10} className="text-[#29B3F0]" fill="currentColor" />
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#29B3F0] leading-none">Spark Sent!</span>
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#29B3F0] leading-none">Super Interest Sent!</span>
               </div>
               <span className="text-[11px] font-black uppercase tracking-tight text-neutral-900 truncate">
-                Interest confirmed for {lastSparkedItem.name}
+                Request sent to seller for {lastSparkedItem.name}
               </span>
             </div>
           </motion.div>
