@@ -68,7 +68,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
   return (
     <motion.div
       animate={controls}
-      style={{ x, y, rotate, zIndex: isTop ? 50 : 50 - index, position: 'absolute', width: '100%', height: '100%' }}
+      style={{ x, y, rotate, zIndex: isTop ? 50 : 50 - index, position: 'absolute', width: '100%', height: '100%', willChange: 'transform' }}
       drag={isTop}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       onDragEnd={handleDragEnd}
@@ -76,7 +76,8 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
       className={`touch-none ${isTop ? 'cursor-grab active:cursor-grabbing' : 'pointer-events-none'}`}
     >
       <div 
-        className="relative w-full h-full bg-black rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.25)] overflow-hidden border border-white/5" 
+        className="relative w-full h-full bg-black rounded-[2.2rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] overflow-hidden border border-white/10 isolate" 
+        style={{ transform: 'translateZ(0)' }}
         onClick={handleImageNav}
       >
         <AnimatePresence mode="wait">
@@ -89,9 +90,9 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
         </AnimatePresence>
         
         {/* Story Indicators */}
-        <div className="absolute top-3 left-4 right-4 flex gap-1 z-[60]">
+        <div className="absolute top-3 left-4 right-4 flex gap-1.5 z-[60]">
           {product.images.map((_, i) => (
-            <div key={i} className={`h-[2px] flex-1 rounded-full transition-colors ${i === currentImageIndex ? 'bg-white' : 'bg-white/40'}`} />
+            <div key={i} className={`h-[2px] flex-1 rounded-full transition-all duration-300 ${i === currentImageIndex ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'bg-white/30'}`} />
           ))}
         </div>
 
@@ -99,44 +100,51 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
         <div className="absolute top-6 right-4 z-[70]">
           <button 
             onClick={(e) => { e.stopPropagation(); onShowDetail(product); }}
-            className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/20 active:scale-90 flex items-center justify-center transition-all shadow-lg"
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl text-white border border-white/20 active:scale-90 flex items-center justify-center transition-all shadow-2xl"
           >
-            <Info size={18} strokeWidth={2.5} />
+            <Info size={20} strokeWidth={2.5} />
           </button>
         </div>
 
         {/* Dark Gradient Bottom - Deepened for control clarity */}
-        <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-black via-black/85 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-[70%] bg-gradient-to-t from-black via-black/90 to-transparent pointer-events-none z-[65]" />
         
-        {/* Content Overlay - Adjusted pb-20 to bring content closer to lower buttons */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 pb-20 text-white pointer-events-none">
+        {/* Content Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 pb-20 text-white pointer-events-none z-[70]">
           {/* Vendor Section */}
-          <div className="flex items-center gap-2.5 mb-2.5">
-            <img src={product.vendor.avatar} className="w-10 h-10 rounded-full border-2 border-white/40 object-cover shadow-lg" />
+          <div className="flex items-center gap-3 mb-3.5">
+            <div className="relative">
+              <img src={product.vendor.avatar} className="w-11 h-11 rounded-full border-2 border-white/30 object-cover shadow-2xl" />
+              {product.vendor.verified && (
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-indigo-500 rounded-full border-2 border-black flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                </div>
+              )}
+            </div>
             <div className="flex flex-col">
-              <span className="text-[13px] font-black uppercase italic tracking-tight drop-shadow-md">{product.vendor.name}</span>
+              <span className="text-[14px] font-black uppercase italic tracking-tight drop-shadow-lg">{product.vendor.name}</span>
               <div className="flex items-center gap-2 mt-0.5">
-                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[8px] font-black uppercase tracking-widest">{product.distance}</span>
-                 <span className="text-[9px] font-bold flex items-center gap-1 opacity-90 drop-shadow-sm"><MapPin size={10} /> {product.vendor.location}</span>
+                 <span className="px-1.5 py-0.5 bg-white/10 rounded-md text-[8px] font-black uppercase tracking-widest border border-white/5">{product.distance}</span>
+                 <span className="text-[9px] font-bold flex items-center gap-1 opacity-80 drop-shadow-md"><MapPin size={10} className="text-white/60" /> {product.vendor.location}</span>
               </div>
             </div>
           </div>
 
           {/* Product Title */}
-          <h2 className="text-2xl font-black leading-[0.95] tracking-tighter uppercase italic mb-3 drop-shadow-2xl max-w-[95%]">
+          <h2 className="text-[22px] font-black leading-[0.9] tracking-tighter uppercase italic mb-4 drop-shadow-2xl max-w-[90%]">
             {product.name}
           </h2>
 
           <div className="flex items-center justify-between pointer-events-none">
             {/* Category Tag */}
-            <div className="px-2.5 py-1 bg-neutral-800/80 backdrop-blur-md rounded-lg border border-white/10 text-[8px] font-black uppercase tracking-[0.2em] text-neutral-200">
+            <div className="px-3 py-1.5 bg-neutral-900/60 backdrop-blur-xl rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.25em] text-neutral-200 shadow-sm">
               {product.category}
             </div>
             
-            {/* Glow Price Tag */}
+            {/* Refined Price Tag */}
             <div className="relative group">
-              <div className="absolute inset-0 bg-emerald-500/30 blur-xl rounded-full" />
-              <div className="relative bg-neutral-900/90 px-3.5 py-2 rounded-xl border border-white/10 text-emerald-400 text-base font-black tracking-tighter shadow-2xl">
+              <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full opacity-40" />
+              <div className="relative bg-neutral-950/80 backdrop-blur-xl px-3 py-1.5 rounded-xl border border-white/10 text-emerald-400 text-[15px] font-black tracking-tight shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
                 {product.price}
               </div>
             </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, X } from 'lucide-react';
@@ -25,7 +24,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         <motion.div 
           initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[210] p-6 pb-12 shadow-2xl ${fullHeight ? 'h-[92vh]' : 'max-h-[85vh]'} overflow-y-auto`}
+          className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[210] p-6 pb-12 shadow-2xl ${fullHeight ? 'h-[92vh]' : 'max-h-[85vh]'} overflow-y-auto no-scrollbar`}
         >
           <div className="w-10 h-1 bg-neutral-200 rounded-full mx-auto mb-6" />
           <div className="flex justify-between items-center mb-8 px-2">
@@ -41,7 +40,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
               <X size={20} strokeWidth={2.5} />
             </button>
           </div>
-          <div className="px-1">{children}</div>
+          <div className="px-1 no-scrollbar">{children}</div>
         </motion.div>
       </>
     )}

@@ -42,7 +42,7 @@ export const GeneralLayout: React.FC<GeneralLayoutProps> = ({
       </header>
 
       <main className="flex-1 overflow-y-auto no-scrollbar px-4 pt-4 pb-40">
-        <div className="max-w-[440px] mx-auto">
+        <div className="max-w-[390px] mx-auto">
           {children}
         </div>
       </main>

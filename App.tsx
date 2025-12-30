@@ -18,7 +18,9 @@ import {
   Sparkles,
   BadgeCheck,
   Star,
-  Info
+  Info,
+  SendHorizontal,
+  ChevronLeft
 } from 'lucide-react';
 import { Product, Vendor } from './types';
 import { PRODUCTS, CATEGORIES_DATA, NIGERIA_CITIES } from './data';
@@ -50,6 +52,7 @@ export const App = () => {
   const [likedItems, setLikedItems] = useState<Product[]>([]);
   const [showWishlist, setShowWishlist] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [viewingSeller, setViewingSeller] = useState<Vendor | null>(null);
   const [triggerDir, setTriggerDir] = useState<'left' | 'right' | 'up' | null>(null);
   const [showSellerToast, setShowSellerToast] = useState(false);
@@ -124,7 +127,36 @@ export const App = () => {
   const handleShare = async (product: Product | null = null) => {
     const itemToShare = product || items[activeIndex] || selectedProduct;
     if (!itemToShare) return;
-    try { await navigator.share({ title: itemToShare.name, text: 'Check this on Nyem!', url: 'https://nyem.app' }); } catch (err) { alert('Link copied!'); }
+    
+    const deepLink = `https://nyem.app/item/${itemToShare.id}`;
+    
+    window.focus();
+
+    if (navigator.share) {
+      try { 
+        await navigator.share({ 
+          title: itemToShare.name, 
+          text: `Check out this ${itemToShare.name} on Nyem! It's going for ${itemToShare.price}.`, 
+          url: deepLink 
+        }); 
+        return;
+      } catch (err: any) { 
+        if (err.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(deepLink);
+      alert('Item link copied to clipboard!'); 
+    } catch (err) {
+      const dummy = document.createElement("input");
+      document.body.appendChild(dummy);
+      dummy.value = deepLink;
+      dummy.select();
+      document.execCommand("copy");
+      document.body.removeChild(dummy);
+      alert('Item link copied!');
+    }
   };
 
   const undoLast = () => {
@@ -157,7 +189,6 @@ export const App = () => {
     setForceProfileSettings(prev => prev + 1);
   };
 
-  // Shared Bottom Navigation Component - Removed 'fixed bottom-0' to avoid overlap
   const renderBottomNav = () => {
     if (isChatOpen) return null;
     return (
@@ -178,7 +209,6 @@ export const App = () => {
     );
   };
 
-  // Layout selection logic
   if (authState !== 'authenticated') {
     return (
       <AuthLayout>
@@ -223,7 +253,6 @@ export const App = () => {
     );
   }
 
-  // Content for Authenticated Users
   if (activePage === 'discover') {
     return (
       <DiscoverLayout
@@ -245,7 +274,6 @@ export const App = () => {
           />
         ) : undefined}
       >
-        {/* Discovery Label - Tightened vertical spacing */}
         <div className="flex items-center justify-center pt-0 pb-1 shrink-0 mt-[-2px]">
           <div className="flex items-center gap-1.5 px-3 py-1 bg-neutral-100 rounded-full border border-neutral-200/50 shadow-sm">
             <MapPin size={9} className="text-indigo-600" />
@@ -255,8 +283,7 @@ export const App = () => {
           </div>
         </div>
 
-        {/* Card Stack Area - Precision bottom spacing (1px) */}
-        <div className="relative flex-1 w-full mt-1 mb-[1px] overflow-hidden">
+        <div className="relative flex-1 w-full mt-1 mb-[2px]">
           <AnimatePresence mode="popLayout">
             {activeTab === 'marketplace' ? (
               items.length > 0 ? (
@@ -264,7 +291,7 @@ export const App = () => {
                   <SwipeCard 
                     key={`${product.id}-${items.length}`} product={product} index={activeIndex - idx} isTop={idx === activeIndex}
                     onSwipe={handleSwipe} triggerDirection={idx === activeIndex ? triggerDir : null}
-                    onShowDetail={setSelectedProduct}
+                    onShowDetail={(p) => { setActiveImageIndex(0); setSelectedProduct(p); }}
                   />
                 ))
               ) : (
@@ -285,45 +312,111 @@ export const App = () => {
           </AnimatePresence>
         </div>
 
-        {/* Global Modals */}
         <Modal isOpen={!!selectedProduct} onClose={() => setSelectedProduct(null)} title="Item Details" fullHeight>
           {selectedProduct && (
-            <div className="flex flex-col gap-6 pb-20">
-              <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x pb-2">
-                {selectedProduct.images.map((img, i) => (
-                  <div key={i} className="flex-shrink-0 w-full snap-center aspect-video rounded-3xl overflow-hidden border border-neutral-100 bg-neutral-50 shadow-sm">
-                    <img src={img} className="w-full h-full object-cover" />
-                  </div>
-                ))}
-              </div>
-              <div className="px-1 flex justify-between items-start">
-                <div>
-                  <span className="text-[9px] font-black text-indigo-600 uppercase tracking-[0.2em]">{selectedProduct.category}</span>
-                  <h2 className="text-3xl font-black text-neutral-900 tracking-tighter mt-1 leading-none">{selectedProduct.name}</h2>
-                  <div className="flex items-center gap-2 mt-3">
-                    <span className="text-2xl font-black text-indigo-600 tracking-tighter">{selectedProduct.price}</span>
-                    <span className="text-[9px] font-black text-neutral-300 uppercase tracking-widest bg-neutral-50 px-2 py-1 rounded-lg">Negotiable</span>
-                  </div>
+            <div className="flex flex-col gap-6 pb-32 no-scrollbar max-w-[390px] mx-auto">
+              <div className="space-y-4">
+                <motion.div 
+                  key={selectedProduct.images[activeImageIndex]}
+                  initial={{ opacity: 0.8 }}
+                  animate={{ opacity: 1 }}
+                  className="w-full aspect-square rounded-[2rem] overflow-hidden bg-neutral-100 border border-neutral-100 shadow-sm"
+                >
+                  <img src={selectedProduct.images[activeImageIndex]} className="w-full h-full object-cover" />
+                </motion.div>
+                
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 px-1">
+                  {selectedProduct.images.map((img, i) => (
+                    <button 
+                      key={i} 
+                      onClick={() => setActiveImageIndex(i)}
+                      className={`flex-shrink-0 w-16 h-16 rounded-2xl overflow-hidden border-2 transition-all ${activeImageIndex === i ? 'border-indigo-600 scale-105 shadow-md shadow-indigo-100' : 'border-transparent opacity-50 hover:opacity-100'}`}
+                    >
+                      <img src={img} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
                 </div>
-                <button onClick={() => handleShare(selectedProduct)} className="p-3 bg-neutral-100 rounded-2xl text-neutral-900 active:scale-90 transition-all"><Share2 size={20} /></button>
               </div>
-              <div className="h-px bg-neutral-100 w-full" />
-              <div className="px-1"><h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] mb-3">The Story</h4><p className="text-neutral-600 text-sm font-medium leading-relaxed">{selectedProduct.longDescription}</p></div>
-              <div className="px-1 space-y-4">
-                <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em]">Verified Seller</h4>
-                <div onClick={() => openSellerProfile(selectedProduct.vendor)} className="bg-neutral-50 rounded-[2rem] p-4 flex items-center justify-between border border-neutral-100 cursor-pointer active:scale-[0.98] transition-all hover:bg-neutral-100 group">
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <img src={selectedProduct.vendor.avatar} className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm" />
-                      {selectedProduct.vendor.verified && (<div className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full text-indigo-600 shadow-sm"><BadgeCheck size={14} fill="currentColor" /></div>)}
+
+              <div className="px-1 space-y-6">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100">
+                      {selectedProduct.category}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h2 className="text-[2.2rem] font-black text-neutral-900 tracking-tighter leading-[0.9] uppercase italic w-full">
+                      {selectedProduct.name}
+                    </h2>
+                    
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-3xl font-black text-indigo-600 tracking-tighter">{selectedProduct.price}</span>
+                        <div className="w-1 h-1 rounded-full bg-neutral-200" />
+                        <span className="text-[9px] font-black text-neutral-400 uppercase tracking-widest italic">Negotiable</span>
+                      </div>
+                      
+                      <button 
+                        onClick={() => handleShare(selectedProduct)} 
+                        className="p-3.5 bg-neutral-900 text-white rounded-2xl active:scale-90 transition-all hover:bg-neutral-800"
+                      >
+                        <Share2 size={18} strokeWidth={2.5} />
+                      </button>
                     </div>
-                    <div><div className="flex items-center gap-1.5"><h4 className="text-sm font-black text-neutral-900 uppercase tracking-tight">{selectedProduct.vendor.name}</h4></div><div className="flex items-center gap-3 mt-1.5"><RatingStars rating={selectedProduct.vendor.rating} /><span className="text-[9px] font-black text-neutral-300 uppercase tracking-widest flex items-center gap-1"><MapPin size={10} /> {selectedProduct.vendor.location}</span></div></div>
                   </div>
-                  <div className="p-3 bg-white rounded-xl text-neutral-400 group-hover:text-neutral-900 transition-colors shadow-sm"><ChevronRight size={18} strokeWidth={3} /></div>
+                </div>
+
+                <div className="h-px bg-neutral-100 w-full" />
+
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-black text-neutral-300 uppercase tracking-[0.25em]">The Description</h4>
+                  <p className="text-neutral-600 text-sm font-medium leading-relaxed">
+                    {selectedProduct.longDescription}
+                  </p>
+                </div>
+
+                <div className="space-y-4 pt-4">
+                  <h4 className="text-[10px] font-black text-neutral-300 uppercase tracking-[0.25em]">Owner of Item</h4>
+                  <div 
+                    onClick={() => openSellerProfile(selectedProduct.vendor)} 
+                    className="bg-white rounded-[3rem] p-5 flex items-center justify-between shadow-[0_12px_40px_rgba(0,0,0,0.04)] border border-neutral-50 cursor-pointer active:scale-[0.98] transition-all hover:bg-neutral-50 group"
+                  >
+                    <div className="flex items-center gap-5">
+                      <div className="relative shrink-0">
+                        <div className="w-20 h-20 rounded-full overflow-hidden border-[6px] border-white shadow-lg ring-1 ring-neutral-100">
+                          <img src={selectedProduct.vendor.avatar} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="absolute bottom-1 right-1 bg-white p-1 rounded-full shadow-md border border-neutral-100">
+                           <div className="w-3.5 h-3.5 bg-[#4F46E5] rounded-full shadow-inner" />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2 min-w-0">
+                        <h4 className="text-xl font-black text-neutral-900 uppercase tracking-tighter italic leading-none truncate">{selectedProduct.vendor.name}</h4>
+                        <div className="flex flex-col gap-1">
+                          <RatingStars rating={selectedProduct.vendor.rating} />
+                          <div className="flex items-center gap-1 text-neutral-400">
+                            <MapPin size={10} strokeWidth={3} />
+                            <span className="text-[10px] font-black uppercase tracking-tight">
+                              {selectedProduct.distance} {selectedProduct.vendor.location.split(',')[0]}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-14 h-14 bg-neutral-50/50 rounded-[1.5rem] flex items-center justify-center text-neutral-300 group-hover:text-neutral-900 group-hover:bg-white group-hover:shadow-lg transition-all border border-neutral-100/50 shrink-0">
+                      <ChevronRight size={28} strokeWidth={3} />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent pt-10">
-                <button className="w-full bg-neutral-900 text-white py-5 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl active:scale-95 transition-all">Start Chat Now</button>
+
+              <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white/95 to-transparent pt-12 z-[250]">
+                <button className="w-full max-w-[360px] mx-auto bg-neutral-900 text-white py-6 rounded-[2.2rem] font-black uppercase text-[11px] tracking-[0.4em] shadow-[0_20px_50px_rgba(0,0,0,0.2)] active:scale-95 transition-all flex items-center justify-center gap-3 border border-white/10 italic">
+                  <SendHorizontal size={18} strokeWidth={3} className="text-indigo-400" />
+                  Send Request to Seller
+                </button>
               </div>
             </div>
           )}
@@ -382,7 +475,6 @@ export const App = () => {
     );
   }
 
-  // General Layout for Upload, Matches, and Profile
   const pageTitles = { upload: 'Studio', matches: 'Inbox', profile: 'Account' };
   const rightActions = {
     upload: { icon: <Sparkles size={20} strokeWidth={2.5} />, onClick: () => {} },

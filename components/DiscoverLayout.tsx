@@ -24,22 +24,24 @@ export const DiscoverLayout: React.FC<DiscoverLayoutProps> = ({
   floatingControls 
 }) => {
   return (
-    <div className="h-[100svh] bg-white flex flex-col overflow-hidden relative">
-      <DiscoverHeader {...headerProps} />
-      
-      <main className="flex-1 relative overflow-hidden flex flex-col px-2">
-        {children}
-        {floatingControls && (
-          <div className="absolute bottom-3 left-0 right-0 z-[110] flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto">
-              {floatingControls}
+    <div className="h-[100svh] bg-white flex flex-col overflow-hidden relative items-center">
+      <div className="w-full max-w-[390px] h-full flex flex-col relative">
+        <DiscoverHeader {...headerProps} />
+        
+        <main className="flex-1 relative overflow-hidden flex flex-col px-2">
+          {children}
+          {floatingControls && (
+            <div className="absolute bottom-3 left-0 right-0 z-[110] flex items-center justify-center pointer-events-none">
+              <div className="pointer-events-auto">
+                {floatingControls}
+              </div>
             </div>
-          </div>
-        )}
-      </main>
+          )}
+        </main>
 
-      <div className="shrink-0 z-[130]">
-        {bottomNav}
+        <div className="shrink-0 z-[130]">
+          {bottomNav}
+        </div>
       </div>
     </div>
   );
