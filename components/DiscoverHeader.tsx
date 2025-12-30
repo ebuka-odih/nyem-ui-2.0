@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Filter, MapPin, Zap, ChevronDown } from 'lucide-react';
@@ -16,7 +15,7 @@ interface DiscoverHeaderProps {
 export const DiscoverHeader: React.FC<DiscoverHeaderProps> = ({ 
   onFilter, onLocation, onWishlist, activeCategory, setActiveTab, activeTab, wishlistCount 
 }) => (
-  <header className="shrink-0 z-[100] bg-white pt-3 pb-2 px-4 sm:px-6 border-b border-neutral-50">
+  <header className="shrink-0 z-[100] bg-white pt-3 pb-1 px-4 sm:px-6 border-b border-neutral-50">
     <div className="max-w-2xl mx-auto flex flex-col gap-2.5">
       {/* Brand Logo Area */}
       <div className="flex items-center gap-1.5">
@@ -55,7 +54,7 @@ export const DiscoverHeader: React.FC<DiscoverHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-          <button onClick={onLocation} className="p-2 sm:p-2.5 bg-neutral-100 rounded-xl sm:rounded-2xl text-[#8B2344] active:scale-95 transition-all flex items-center gap-1">
+          <button onClick={onLocation} className="p-2 sm:p-2.5 bg-neutral-100 rounded-xl sm:rounded-2xl text-indigo-600 active:scale-95 transition-all flex items-center gap-1">
             <MapPin size={18} />
             <ChevronDown size={12} className="hidden sm:block opacity-40" />
           </button>
