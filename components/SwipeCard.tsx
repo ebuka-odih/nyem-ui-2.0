@@ -108,8 +108,8 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
         {/* Dark Gradient Bottom - Deepened for control clarity */}
         <div className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-black via-black/85 to-transparent pointer-events-none" />
         
-        {/* Content Overlay - Reduced pb to bring content closer to buttons */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 pb-24 text-white pointer-events-none">
+        {/* Content Overlay - Adjusted pb-20 to bring content closer to lower buttons */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 pb-20 text-white pointer-events-none">
           {/* Vendor Section */}
           <div className="flex items-center gap-2.5 mb-2.5">
             <img src={product.vendor.avatar} className="w-10 h-10 rounded-full border-2 border-white/40 object-cover shadow-lg" />
@@ -122,7 +122,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
             </div>
           </div>
 
-          {/* Product Title - Reduced size from text-3xl to text-2xl */}
+          {/* Product Title */}
           <h2 className="text-2xl font-black leading-[0.95] tracking-tighter uppercase italic mb-3 drop-shadow-2xl max-w-[95%]">
             {product.name}
           </h2>

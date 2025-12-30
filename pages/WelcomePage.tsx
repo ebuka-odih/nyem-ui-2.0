@@ -5,11 +5,15 @@ import {
   ShoppingBag, 
   Briefcase, 
   RefreshCw, 
-  ArrowRight 
+  ArrowRight,
+  UserPlus,
+  LogIn
 } from 'lucide-react';
 
 interface WelcomePageProps {
   onStart: () => void;
+  onLogin: () => void;
+  onRegister: () => void;
 }
 
 const containerVariants = {
@@ -32,7 +36,7 @@ const itemVariants = {
   }
 };
 
-export const WelcomePage: React.FC<WelcomePageProps> = ({ onStart }) => {
+export const WelcomePage: React.FC<WelcomePageProps> = ({ onStart, onLogin, onRegister }) => {
   const features = [
     {
       title: 'Marketplace',
@@ -62,18 +66,18 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onStart }) => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="fixed inset-0 z-[1000] bg-white flex flex-col items-center px-8 pt-16 pb-12 overflow-y-auto no-scrollbar"
+      className="fixed inset-0 z-[1000] bg-white flex flex-col items-center px-8 pt-12 pb-12 overflow-y-auto no-scrollbar"
     >
       {/* Branding Section */}
       <motion.div variants={itemVariants} className="flex flex-col items-center text-center mb-8">
-        <div className="flex items-center gap-3 mb-10">
+        <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 bg-neutral-900 rounded-full flex items-center justify-center text-white shadow-xl">
             <Zap size={24} fill="currentColor" />
           </div>
           <span className="text-4xl font-black tracking-tighter uppercase italic text-neutral-900">Nyem</span>
         </div>
         
-        <h1 className="text-4xl font-black text-neutral-900 tracking-tighter uppercase italic leading-[0.85] mb-6">
+        <h1 className="text-4xl font-black text-neutral-900 tracking-tighter uppercase italic leading-[0.85] mb-4">
           Your Local <br /> Marketplace
         </h1>
         
@@ -83,45 +87,66 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({ onStart }) => {
       </motion.div>
 
       {/* Feature Cards */}
-      <div className="w-full max-w-sm space-y-3 mb-6">
+      <div className="w-full max-w-sm space-y-3 mb-8">
         {features.map((f, i) => (
           <motion.div 
             key={i} 
             variants={itemVariants}
-            className="flex items-center gap-4 p-5 bg-neutral-50 border border-neutral-100 rounded-[2rem] hover:bg-white transition-all group"
+            className="flex items-center gap-4 p-4 bg-neutral-50 border border-neutral-100 rounded-[2rem] hover:bg-white transition-all group"
           >
-            <div className={`w-12 h-12 ${f.color} rounded-2xl flex items-center justify-center ${f.iconColor} shrink-0 shadow-sm group-hover:scale-110 transition-transform`}>
-              <f.icon size={22} strokeWidth={2.5} />
+            <div className={`w-11 h-11 ${f.color} rounded-2xl flex items-center justify-center ${f.iconColor} shrink-0 shadow-sm group-hover:scale-110 transition-transform`}>
+              <f.icon size={20} strokeWidth={2.5} />
             </div>
             <div className="flex flex-col">
-              <h3 className="text-sm font-black text-neutral-900 uppercase tracking-tight leading-none mb-1">{f.title}</h3>
-              <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">{f.desc}</p>
+              <h3 className="text-xs font-black text-neutral-900 uppercase tracking-tight leading-none mb-1">{f.title}</h3>
+              <p className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest">{f.desc}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Action Section - Removed mt-auto to push it up closer to the list */}
-      <motion.div variants={itemVariants} className="w-full max-w-sm space-y-6">
+      {/* Action Section */}
+      <motion.div variants={itemVariants} className="w-full max-w-sm space-y-4">
         <button 
           onClick={onStart}
-          className="w-full bg-neutral-900 text-white py-6 rounded-full font-black uppercase tracking-[0.3em] text-[11px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] active:scale-95 transition-all flex items-center justify-center gap-3"
+          className="w-full bg-neutral-900 text-white py-6 rounded-[2rem] font-black uppercase tracking-[0.3em] text-[11px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] active:scale-95 transition-all flex items-center justify-center gap-3"
         >
           Start Exploring
           <ArrowRight size={18} strokeWidth={3} />
         </button>
 
-        <div className="text-center space-y-5">
-          <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
-            Ready to join? <span className="text-indigo-600">Create an account</span>
-          </p>
-          
-          <div className="flex justify-center items-center gap-4 opacity-30">
-            <button className="text-[9px] font-black text-neutral-900 uppercase tracking-widest">Terms of Use</button>
-            <div className="w-1 h-1 rounded-full bg-neutral-900" />
-            <button className="text-[9px] font-black text-neutral-900 uppercase tracking-widest">Privacy Policy</button>
-          </div>
+        <div className="grid grid-cols-2 gap-3">
+          <button 
+            onClick={onLogin}
+            className="bg-white border border-neutral-100 text-neutral-400 py-3 rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] active:scale-95 transition-all flex items-center justify-center gap-2 hover:text-neutral-900 hover:border-neutral-200 shadow-sm"
+          >
+            <LogIn size={14} strokeWidth={3} />
+            Login
+          </button>
+          <button 
+            onClick={onRegister}
+            className="bg-neutral-50 border border-transparent text-neutral-400 py-3 rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 shadow-sm"
+          >
+            <UserPlus size={14} strokeWidth={3} />
+            Register
+          </button>
         </div>
+
+        <div className="text-center pt-2">
+          <button 
+            onClick={onStart}
+            className="text-[10px] font-black text-neutral-300 uppercase tracking-[0.2em] hover:text-neutral-900 transition-colors"
+          >
+            Skip for now &rarr;
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Footer Links */}
+      <motion.div variants={itemVariants} className="mt-8 flex justify-center items-center gap-4 opacity-30">
+        <button className="text-[8px] font-black text-neutral-900 uppercase tracking-widest">Terms</button>
+        <div className="w-1 h-1 rounded-full bg-neutral-900" />
+        <button className="text-[8px] font-black text-neutral-900 uppercase tracking-widest">Privacy</button>
       </motion.div>
     </motion.div>
   );
